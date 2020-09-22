@@ -184,11 +184,12 @@ class Common {
     fileList.forEach(filePath => {
       const oldFilePath = `${oldPath}/${filePath}`
       const newFilePath = `${newPath}/${filePath}`
+      const oldFullFilePath = path.join(__dirname, oldFilePath)
       fs.mkdirSync(path.join(this.projectPath, newPath), { recursive: true })
-      if (['.html', '.scss', '.ts'].some(t => filePath.endsWith(t))) {
-        fs.copyFileSync(path.join(__dirname, oldFilePath), path.join(this.projectPath, newFilePath))
+      if (fs.statSync(oldFullFilePath).isFile()) {
+        fs.copyFileSync(oldFullFilePath, path.join(this.projectPath, newFilePath))
         if (isMove) {
-          fs.unlinkSync(path.join(__dirname, oldFilePath))
+          fs.unlinkSync(oldFullFilePath)
           if (!fs.readdirSyncpath.join(__dirname, (oldPath)).length) {
             fs.rmdirSync(path.join(__dirname, oldPath))
           }

@@ -1,10 +1,14 @@
 {
   "name": "react-environment-setup",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "react-environment-setup",
   "main": "init.js",
   "scripts": {
     "test": "node init"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phinney001/react-environment-setup.git"
   },
   "keywords": [
     "react",
@@ -13,6 +17,13 @@
   ],
   "author": "phinney",
   "license": "ISC",
+  "bin": {
+    "res": "bin/res"
+  },
+  "bugs": {
+    "url": "https://github.com/phinney001/react-environment-setup/issues"
+  },
+  "homepage": "https://github.com/phinney001/react-environment-setup#readme",
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "inquirer": "^7.3.3",
