@@ -1,0 +1,21 @@
+{
+  "name": "react-environment-setup",
+  "version": "1.0.0",
+  "description": "react-environment-setup",
+  "main": "init.js",
+  "scripts": {
+    "test": "node init"
+  },
+  "keywords": [
+    "react",
+    "front-end",
+    "environment"
+  ],
+  "author": "phinney",
+  "license": "ISC",
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "inquirer": "^7.3.3",
+    "request": "^2.88.2"
+  }
+}
