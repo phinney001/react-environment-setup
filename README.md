@@ -38,7 +38,7 @@
         {
           path: '/parent/child',
           name: '子级路由中文名称',
-          component: '/Parent/Child',
+          component: './Parent/Child',
           table: true, // 是否是一体化表格组件
           service: true, // 是否添加service文件
           cover: true, // 已有文件是否覆盖
