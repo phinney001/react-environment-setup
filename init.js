@@ -2,15 +2,15 @@ const fs = require('fs')
 const path = require('path')
 const { prompt } = require('inquirer')
 const Router = require('./router.js')
+const { green } = require('ansi-colors')
 
 class ReactCli {
   /**
    * 拷贝目录
    * @param {string} oldPath 旧目录路径
    * @param {string} newPath 新目录路径
-   * @param {boolean} isMove 是否删除旧目录文件
    */
-  copyDir(oldPath, newPath, isMove) {
+  copyDir(oldPath, newPath, projectName) {
     const fileList = fs.readdirSync(oldPath)
     // 初始创建文件夹
     fs.mkdirSync(newPath, { recursive: true })
@@ -21,17 +21,13 @@ class ReactCli {
       // 判断是否是文件
       if (fs.statSync(oldFilePath).isFile()) {
         // 复制文件
-        fs.copyFileSync(oldFilePath, newFilePath)
-        if (isMove) {
-          // 删除文件/文件夹
-          fs.unlinkSync(oldFilePath)
-          if (!fs.readdirSync(oldFilePath).length) {
-            fs.rmdirSync(path.join(__dirname, oldPath))
-          }
-        }
+        let newFileString = fs.readFileSync(oldFilePath, 'utf-8')
+        newFileString = newFileString.replace(/PROJECTNAME/g, projectName)
+        fs.writeFileSync(newFilePath, newFileString, 'utf-8')
       } else {
         // 如果是文件夹递归
-        this.copyDir(oldFilePath, newFilePath, isMove)
+        this.copyDir(oldFilePath, newFilePath, projectName)
+        console.log(green('项目创建成功！'))
       }
     })
   }
@@ -75,7 +71,8 @@ class ReactCli {
     }
 
     // 拷贝文件
-    this.copyDir(templatePath, projectPath)
+    this.copyDir(templatePath, projectPath, answers['project-name-cn'])
+    console.log
   }
 
   /**
