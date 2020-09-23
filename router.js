@@ -1,120 +1,61 @@
-const Common = require('./common.js')
 const fs = require('fs')
 const { red } = require('ansi-colors')
 
-class Router extends Common {
-
-  constructor() {
-    super()
-  }
+class Router {
 
   /**
-   * 创建空白组件
-   * @param {string} filePath 组件路径
-   * @param {string} fileName 组件名称
-   * @param {string} fileTitle 组件标题
+   * 英文字符串首字母大写
+   * @param {*} str 英文字符串 
+   * @returns {string}
    */
-  createBlankComponent(filePath, fileName, fileTitle) {
-    const templatePreFixPath = '/routes/templet/templet.component.'
-    const preFixPath = `${filePath}/${fileName}/${fileName}.component.`
-    const preFixList = ['html', 'scss', 'ts']
-    preFixList.forEach(suffix => {
-      let templateString = this.getTemplate(templatePreFixPath + suffix)
-      const componentName = fileName.split('-').map(x => this.getFirstLetterUpper(x)).join('')
-      templateString = templateString.replace(new RegExp('templet', 'g'), fileName)
-      templateString = templateString.replace(new RegExp('Templet-Title', 'g'), fileTitle)
-      templateString = templateString.replace(new RegExp('Templet', 'g'), componentName)
-      this.generateFile(preFixPath + suffix, templateString)
-    })
-  }
-
-  /**
-   * 创建空白模块
-   * @param {string} filePath 模块路径
-   * @param {string} fileName 模块名称
-   * @param {string} fileTitle 模块标题
-   */
-  createBlankModule(filePath, fileName, fileTitle) {
-    const templatePath = '/modules/templet.module.ts'
-    const fileFullPath = `${filePath}/${fileName}/${fileName}.module.ts`
-    let templateString = this.getTemplate(templatePath)
-    const moduleName = fileName.split('-').map(x => this.getFirstLetterUpper(x)).join('')
-    templateString = templateString.replace(new RegExp('templet', 'g'), fileName)
-    templateString = templateString.replace(new RegExp('Templet-Title', 'g'), fileTitle)
-    templateString = templateString.replace(new RegExp('Templet', 'g'), moduleName)
-    this.generateFile(fileFullPath, templateString)
-  }
-
-  /**
-   * 添加路由配置
-   * @param {string} routePath 路由组件路径
-   * @param {string} moduleName 模块名称
-   * @param {string} fileName 组件名称
-   * @param {string} fileTitle 组件标题
-   * @param {string} isModule 是否是模块
-   */
-  addRouteConfig(routePath, moduleName, fileName, fileTitle, isModule) {
-    const upperFileName = fileName.split('-').map(x => this.getFirstLetterUpper(x)).join('')
-    const modulePath = `${routePath}/${moduleName}.module.ts`
-    const filePath = routePath.replace('/src/app', '@app')
-    const rewriteList = {
-      replaceList: [],
-      matchList: [],
-      importList: []
+  getFirstLetterUpper(str) {
+    if (this.isString(str) && str[0]) {
+      return str[0].toUpperCase() + str.substr(1)
     }
-    rewriteList.replaceList = [
-      {
-        before: `redirectTo: 'route'`,
-        after: `redirectTo: '${fileName}'`
-      }  
-    ]
-    if (isModule) {
-      rewriteList.matchList.push(
-        {
-          match: 'const routes: Routes = [|]',
-          item: `{ path: '${fileName}', loadChildren: () => import('./${fileName}/${fileName}.module').then(m => m.${upperFileName}Module), data: { title: '${fileTitle}' } }`
-        }
-      )
-    } else {
-      rewriteList.importList.push(`import { ${upperFileName}Component } from '${filePath}/${fileName}/${fileName}.component'`)
-      rewriteList.matchList.push(
-        {
-          match: 'declarations: [|]',
-          item: `${upperFileName}Component`,
-          space: 2
-        },
-        {
-          match: 'const routes: Routes = [|]',
-          item: `{ path: '${fileName}', component: ${upperFileName}Component, data: { title: '${fileTitle}' } }`
-        }
-      )
-    }
-    this.rewriteFile(modulePath, rewriteList)
+    return ''
   }
 
   /**
-   * 生成路由
+   * 生成路由组件
    * @param {string} moduleName 模块名称
    * @param {string} routerList 路由列表
    * @param {string} routePath 路由组件路径
    */
-  generateRoute(moduleName, routerList, routePath) {
-    routerList.forEach(route => {
-      if (route.link && route.link !== '/') {
-        const fileName = route.link.split('/').pop()
-        this.createBlankComponent(routePath, fileName, route.title)
-        this.addRouteConfig(routePath, moduleName, fileName, route.title)
-        if (this.isArray(route.children)) {
-          this.generateRoute(moduleName, route.children, `${routePath}/${fileName}`)
+  generateRoute(routerList, routePath) {
+    routerList.forEach(item => {
+      const newRoutePath = item.component ? path.join(routePath, item.component) : routePath
+      if (item.component) {
+        const newRouteComponentPath = path.join(newRoutePath, 'index.tsx')
+        const newRouteServicePath = path.join(newRoutePath, 'service.tsx')
+
+        // 是否覆盖组件文件
+        if (fs.existsSync(newRouteComponentPath) && !item.cover) {
+          // 获取空白组件字符串
+          let componentString = fs.readFileSync('./template/blank/index.tsx', 'utf-8')
+          // 是否是表格类组件
+          if (item.table) {
+            componentString = fs.readFileSync('./template/blank/table.tsx', 'utf-8')
+          }
+          componentString = componentString.replace(/HEADERTITLE/g, item.name)
+            .replace(/COMPONENT/g, item.component.split('/').pop())
+          fs.writeFileSync(path.join(newRoutePath, 'index.tsx'), componentString, 'utf-8')
         }
-      } else {
-        if (route.name) {
-          this.createBlankModule(routePath, route.name, route.title)
-          this.addRouteConfig(routePath, moduleName, route.name, route.title, true)
-          if (this.isArray(route.children)) {
-            this.generateRoute(route.name, route.children, `${routePath}/${route.name}`)
+
+        // 是否覆盖service文件
+        if (fs.existsSync(newRouteServicePath) && !item.cover) {
+          // 是否添加service
+          if (item.service) {
+            fs.writeFileSync(
+              path.join(newRoutePath, 'service.tsx'),
+              fs.readFileSync('./template/blank/service.tsx', 'utf-8'),
+              'utf-8'
+            )
           }
         }
+      }
+      // 如果有子级路由递归
+      if (item.routes && item.routes.length) {
+        this.generateRoute(item.routes, newRoutePath)
       }
     })
   }
@@ -123,18 +64,19 @@ class Router extends Common {
    * 生成路由命令
    */
   start() {
-    const routerPath = `${process.cwd()}/.router`
+    // 路由文件路径
+    const routerPath = `${process.cwd()}/config/routes.ts`
     if (fs.existsSync(routerPath)) {
-      const routerList = require(routerPath)
-      const routeBasePath = '/src/app/routes'
-      const routesPath = `${process.cwd()}${routeBasePath}/routes.module.ts`
-      if (fs.existsSync(routesPath)) {
-        this.generateRoute('routes', routerList, routeBasePath)
-      } else {
-        console.log(red('/src/app/routes/routes.module.ts must exists.'))
-      }
+      // 获取路由列表
+      let routerListString = fs.readFileSync(routerPath, 'utf-8')
+      routerListString = routerListString.replace('export default ', '')
+      const routerList = eval(routerListString)
+      // 路由生成路径
+      const routeBasePath = `${process.cwd()}/src/app/pages`
+      // 生成路由
+      this.generateRoute(routerList, routeBasePath)
     } else {
-      console.log(red('.router must exists.'))
+      console.log(red(`${routerPath} must exists.`))
     }
   }
 }

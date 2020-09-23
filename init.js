@@ -27,7 +27,6 @@ class ReactCli {
       } else {
         // 如果是文件夹递归
         this.copyDir(oldFilePath, newFilePath, projectName)
-        console.log(green('项目创建成功！'))
       }
     })
   }
@@ -72,7 +71,7 @@ class ReactCli {
 
     // 拷贝文件
     this.copyDir(templatePath, projectPath, answers['project-name-cn'])
-    console.log
+    console.log(green('项目创建成功！'))
   }
 
   /**

@@ -27,18 +27,21 @@
   res
   ```
 # 生成路由
-  + 在项目目录创建.router文件，内容如: 
+  + 在项目config目录routes.ts文件添加路由，内容如: 
   ```javascript
-  module.exports = [
+  export default [
     {
-      id: 1,
-      title: '父级路由',
-      name: 'moduleName',
-      children: [
+      path: '/parent',
+      name: '父级路由中文名称',
+      icon: 'smile',
+      routes: [
         {
-          id: 101,
-          title: '子级路由',
-          link: '/moduleName/routeName'
+          path: '/parent/child',
+          name: '子级路由中文名称',
+          component: '/Parent/Child',
+          table: true, // 是否是一体化表格组件
+          service: true, // 是否添加service文件
+          cover: true, // 已有文件是否覆盖
         }
       ]
     }
