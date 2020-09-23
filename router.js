@@ -1,5 +1,6 @@
 const fs = require('fs')
-const { red } = require('ansi-colors')
+const path = require('path')
+const { green, red } = require('ansi-colors')
 
 class Router {
 
@@ -23,33 +24,52 @@ class Router {
    */
   generateRoute(routerList, routePath) {
     routerList.forEach(item => {
-      const newRoutePath = item.component ? path.join(routePath, item.component) : routePath
-      if (item.component) {
+      const isComponent = item.name && item.component
+      const newRoutePath = isComponent ? path.join(routePath, item.component) : routePath
+      if (isComponent) {
+        const fileName = item.component.split('/').pop()
         const newRouteComponentPath = path.join(newRoutePath, 'index.tsx')
         const newRouteServicePath = path.join(newRoutePath, 'service.tsx')
-
+        const newComponentExists =fs.existsSync(newRouteComponentPath)
+        const newServiceExists =fs.existsSync(newRouteServicePath)
+        
+        // 初始创建文件夹
+        fs.mkdirSync(newRoutePath, { recursive: true })
         // 是否覆盖组件文件
-        if (fs.existsSync(newRouteComponentPath) && !item.cover) {
+        if (!newComponentExists || (newComponentExists && item.cover)) {
+          console.log(green(`${fileName}/index.tsx creating. . .`))
           // 获取空白组件字符串
-          let componentString = fs.readFileSync('./template/blank/index.tsx', 'utf-8')
+          let componentString = fs.readFileSync(
+            path.join(__dirname, './template/blank/index.tsx'),
+            'utf-8'
+          )
           // 是否是表格类组件
           if (item.table) {
-            componentString = fs.readFileSync('./template/blank/table.tsx', 'utf-8')
+            componentString = fs.readFileSync(
+              path.join(__dirname, './template/blank/table.tsx'),
+              'utf-8'
+            )
           }
           componentString = componentString.replace(/HEADERTITLE/g, item.name)
-            .replace(/COMPONENT/g, item.component.split('/').pop())
+            .replace(/COMPONENT/g, fileName)
           fs.writeFileSync(path.join(newRoutePath, 'index.tsx'), componentString, 'utf-8')
+          console.log(green(`${fileName}/index.tsx create completed.`))
         }
 
         // 是否覆盖service文件
-        if (fs.existsSync(newRouteServicePath) && !item.cover) {
+        if (!newServiceExists || (newServiceExists && item.cover)) {
           // 是否添加service
           if (item.service) {
+            console.log(green(`${fileName}/service.tsx creating. . .`))
             fs.writeFileSync(
               path.join(newRoutePath, 'service.tsx'),
-              fs.readFileSync('./template/blank/service.tsx', 'utf-8'),
+              fs.readFileSync(
+                path.join(__dirname, './template/blank/service.tsx'),
+                'utf-8'
+              ),
               'utf-8'
             )
+            console.log(green(`${fileName}/service.tsx create completed.`))
           }
         }
       }
@@ -72,7 +92,7 @@ class Router {
       routerListString = routerListString.replace('export default ', '')
       const routerList = eval(routerListString)
       // 路由生成路径
-      const routeBasePath = `${process.cwd()}/src/app/pages`
+      const routeBasePath = `${process.cwd()}/src/pages`
       // 生成路由
       this.generateRoute(routerList, routeBasePath)
     } else {
