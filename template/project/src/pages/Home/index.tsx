@@ -1,9 +1,6 @@
-import { modal } from '@/components/CustomModal'
 import { DynamicFormItem } from '@/components/DynamicForm'
-import FormLocation from '@/components/DynamicForm/FormLocation'
 import IntegrationTable, { IntegrationTableProps } from '@/components/IntegrationTable'
-import { loadBusinessList, loadIndustryList } from '@/utils/dict'
-import { arrayToObject } from 'phinney-toolkit'
+import { loadStausList } from '@/utils/dict'
 import { ProColumns } from '@ant-design/pro-table'
 import { message, Popconfirm } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -12,34 +9,11 @@ import { changeUserStatus } from './service'
 const Home: React.FC<{}> = () => {
   // 组件是否已经卸载
   let isUnMounted = false
-  // 行业身份列表
-  const [industryList, setIndustryList] = useState<any[]>([])
-  // 经营领域列表
-  const [businessList, setBusinessList] = useState<any[]>([])
+  // 状态列表
+  const [statusList, setStatusList] = useState<any>({})
 
   // 表格项
   const columns: ProColumns[] = [
-    {
-      title: '行业身份',
-      dataIndex: 'industryIdentity',
-      hideInTable: true,
-      valueEnum: arrayToObject(industryList)
-    },
-    {
-      title: '行业身份',
-      dataIndex: 'industryIdentity',
-      hideInSearch: true,
-    },
-    {
-      title: '经营领域',
-      dataIndex: 'businessArea',
-      hideInSearch: true,
-    },
-    {
-      title: '地区',
-      dataIndex: 'areaId',
-      hideInSearch: true,
-    },
     {
       title: '用户名',
       dataIndex: 'name',
@@ -49,32 +23,15 @@ const Home: React.FC<{}> = () => {
       dataIndex: 'phone',
     },
     {
-      title: '地址',
-      dataIndex: 'address',
-      hideInSearch: true,
-      render: (text, record: any) => {
-        return (
-          <a
-            onClick={() => {
-              if (!record?.lng || !record?.lat) {
-                message.error('该用户没有地址经纬度信息！')
-                return
-              }
-              modal({
-                width: 1000,
-                title: '地址信息',
-                content: <FormLocation  point={record} />,
-                footer: null
-              })
-            }}
-          >{text}</a>
-        )
-      }
-    },
-    {
       title: '注册时间',
       dataIndex: 'addTime',
       hideInSearch: true,
+    },
+    {
+      title: '是否启用',
+      dataIndex: 'status',
+      hideInSearch: true,
+      valueEumn: statusList
     },
     {
       title: '操作',
@@ -104,31 +61,8 @@ const Home: React.FC<{}> = () => {
   // 表单项
   const formItems: DynamicFormItem[] = [
     {
-      type: 'select',
-      label: '行业身份',
-      name: 'industryIdentity',
-      required: true,
-      options: industryList,
-    },
-    {
-      type: 'select',
-      label: '经营领域',
-      name: 'businessArea',
-      required: true,
-      options: businessList,
-      fieldProps: {
-        mode: 'multiple',
-      }
-    },
-    {
-      type: 'location',
-      label: '地理位置',
-      name: 'address',
-      required: true,
-    },
-    {
       type: 'text',
-      label: '用户名称',
+      label: '用户名',
       name: 'name',
       required: true,
     },
@@ -156,11 +90,8 @@ const Home: React.FC<{}> = () => {
 
   // 初始化加载数据
   useEffect(() => {
-    loadIndustryList((list: any[]) => {
-      !isUnMounted && setIndustryList(list)
-    })
-    loadBusinessList((list: any[]) => {
-      !isUnMounted && setBusinessList(list)
+    loadStausList((list: any[]) => {
+      !isUnMounted && setStatusList(list)
     })
     return () => {
       isUnMounted = true
