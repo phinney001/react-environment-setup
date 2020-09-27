@@ -88,7 +88,7 @@ export interface FormLocationRefs {
 const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps> = (props, ref) => {
   const {
     height = 600,
-    center = [113.694882, 34.80107],
+    center,
     zoom = 13,
     config = {},
     searchText,
@@ -111,7 +111,7 @@ const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps
   // 初始化地图
   const initMap = () => {
     const baiduMap: MapProps = new BMap.Map(`baiduMap${timestamp}`, config)
-    baiduMap.centerAndZoom(new BMap.Point(...center), zoom)
+    baiduMap.centerAndZoom(new BMap.Point(...(center || [113.694882, 34.80107])), zoom)
     baiduMap.addControl(new BMap.NavigationControl())
     baiduMap.enableScrollWheelZoom(true)
     !isUnMounted && setMap(baiduMap)
@@ -173,6 +173,13 @@ const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps
       handleSearch(searchText)
     }
   }, [map, searchText])
+
+  // 中心点变化更新
+  useEffect(() => {
+    if (map && center) {
+      map.panTo(new BMap.Point(...center))
+    }
+  }, [map, center])
 
   return (
     <div style={{ position: 'relative' }}>

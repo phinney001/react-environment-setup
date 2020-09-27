@@ -81,7 +81,7 @@ request.interceptors.response.use(async response => {
 	if (res?.httpStatus && res?.httpStatus !== 200) {
 		message.error(res.msg)
 	}
-	return res?.httpStatus === 200 ? (res?.data ? res.data : res) : false
+	return res?.httpStatus === 200 ? (Reflect.has(res, 'data') ? (res.data || true) : res) : false
 })
 
 export default request

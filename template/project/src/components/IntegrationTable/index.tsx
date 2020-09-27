@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, ForwardRefRenderFunction, useImperativeHandle, forwardRef } from 'react'
 import ProTable, { ActionType, ProTableProps } from '@ant-design/pro-table'
 import { FormProps } from 'antd/lib/form'
-import DynamicForm, { DynamicFormItem } from '../DynamicForm'
+import DynamicForm, { DynamicFormItem, locationName } from '../DynamicForm'
 import { PlusOutlined } from '@ant-design/icons'
 import { Button, message, Popconfirm, Divider } from 'antd'
 import { PageContainer } from '@ant-design/pro-layout'
@@ -217,6 +217,7 @@ const IntegrationTable: ForwardRefRenderFunction<
             const hide = message.loading(requestProps?.loadingMsg)
             const res = await handleRequest(requestProps, {
               ...values,
+              ...modalForm?.form?.getFieldValue?.(locationName),
               ...((typeof rowKey === 'string' && formValues[rowKey])
                 ? {[rowKey]: formValues[rowKey]}
                 : {}

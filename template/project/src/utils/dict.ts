@@ -1,6 +1,6 @@
 import { session } from '@/services/storage'
 import request from './request'
-import { arrayToObject, arrayToOptions, treeToObject, treeToOptions } from './transform'
+import { arrayToObject, arrayToOptions, treeToCoordObject, treeToObject, treeToOptions } from './transform'
 
 // 列表数据处理
 export const handleListData = (
@@ -21,6 +21,15 @@ export const handleListData = (
     if (valueType === 'treeObject') {
       return treeToObject(data, ...otherArgs)
     }
+    if (valueType === 'treeCoordObject') {
+      return treeToCoordObject(data, ...otherArgs)
+    }
+  }
+  if (['array', 'treeArray'].includes(valueType)) {
+    return []
+  }
+  if (['object', 'treeObject', 'treeCoordObject'].includes(valueType)) {
+    return {}
   }
   return data
 }
@@ -52,7 +61,7 @@ export const loadIndustryList = async (
   // request('/admin/industry/list', {
   //   method: 'GET',
   // })
-  const result = handleListData(res || [], valueType)
+  const result = handleListData(res, valueType)
   setList?.(result)
   return result
 }
@@ -72,7 +81,7 @@ export const loadBusinessList = async (
   // request('/admin/business/list', {
   //   method: 'GET',
   // })
-  const result = handleListData(res || [], valueType)
+  const result = handleListData(res, valueType)
   setList?.(result)
   return result
 }
@@ -94,7 +103,7 @@ export const loadAreaList = async (
   // request('/admin/area1/list', {
   //   method: 'GET',
   // })
-  const result = handleListData(res || [], valueType)
+  const result = handleListData(res, valueType)
   setList?.(result)
   return result
 }
@@ -108,8 +117,23 @@ export const loadCityList = async (
     const res: any = await request('/admin/area/list', {
       method: 'GET',
     })
-    result = handleListData(res || [], 'treeArray', 'name', 'id')
+    result = handleListData(res, 'treeArray', 'name', 'id')
+    const cityCorrd = handleListData(res, 'treeCoordObject', ['lat', 'lng'], 'id')
+    dict('cityCoord', cityCorrd)
     dict('city', result)
+  }
+  setList?.(result)
+  return result
+}
+
+// 加载城市经纬度列表
+export const loadCityCoordList = async (
+  setList?: (list: any) => any,
+) => {
+  let result = dict('cityCoord')
+  if (!result) {
+    await loadCityList()
+    result = dict('cityCoord')
   }
   setList?.(result)
   return result
