@@ -1,4 +1,4 @@
-import { precision } from '@/utils/unit';
+import { precision } from 'phinney-toolkit';
 
 export class ChartService {
 

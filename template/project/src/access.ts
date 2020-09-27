@@ -1,6 +1,6 @@
 import { stringify } from 'qs'
 import { history } from 'umi'
-import { session } from './services/storage'
+import { session } from 'phinney-toolkit'
 
 // 登录地址
 export const loginPath = '/passport/login'

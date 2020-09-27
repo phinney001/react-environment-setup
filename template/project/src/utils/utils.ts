@@ -37,33 +37,3 @@ export const getPageQuery = () => {
 
   return {};
 }
-
-// 是否含有某个子节点
-export const hasChild = (list: any[], value: any, valueName = 'value', childrenName = 'children'): boolean => {
-  if (list instanceof Array) {
-    return list.some((s: any) => {
-      if (s[valueName] !== value && s[childrenName]) {
-        return hasChild(s[childrenName], value);
-      }
-      return s[valueName] === value
-    })
-  }
-  return false;
-}
-
-// 根据子节点id获取含有父级节点id列表
-export const getValueListByChildId = (list: any[], value: any, valueName = 'value', childrenName = 'children'): any[] => {
-  if (list instanceof Array) {
-    return list.reduce((t, c) => {
-      if (c[valueName] === value || hasChild(c[childrenName], value)) {
-        return [
-          ...t,
-          c[valueName],
-          ...(getValueListByChildId(c[childrenName], value, valueName, childrenName))
-        ];
-      }
-      return t;
-    }, [])
-  }
-  return [];
-}
