@@ -73,12 +73,8 @@ export interface FormLocationProps {
 
 /**
  * 选点地图props
- * height 地图高度
- * center 地图中心坐标数组
- * zoom 地图缩放度
- * config 地图其他配置
- * searchText 地图搜索文本
- * point 地图标记点
+ * address 地图标记点地址
+ * coord 地图标记点坐标
  */
 export interface FormLocationRefs {
   address?: string

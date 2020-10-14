@@ -27,7 +27,7 @@ import { checkPhone } from './FormValidate'
 import FormUpload from './FormUpload'
 import { modal } from '../CustomModal'
 import FormLocation, { FormLocationRefs } from './FormLocation'
-import { FormInstance, FormItemProps } from 'antd/lib/form'
+import { FormInstance, FormItemProps, Rule } from 'antd/lib/form'
 import { ColProps } from 'antd/lib/col'
 
 /**
@@ -37,6 +37,10 @@ import { ColProps } from 'antd/lib/col'
  * @param labelHidden 是否隐藏表单标签
  * @param name 表单字段名
  * @param span 表单所占空间
+ * @param required 是否必填
+ * @param rules 验证规则
+ * @param options 下拉框、多选框数据
+ * @param countDown 验证码倒计时时间
  * @param formItemProps 表单项props
  * @param fieldProps 表单元素props
  * @param colProps 表单空间props
@@ -50,6 +54,10 @@ export interface DynamicFormItem {
   labelHidden?: boolean
   name?: string
   span?: number
+  required?: boolean
+  rules?: Rule[]
+  countDown?: number
+  options?: any[]
   formItemProps?: FormItemProps
   fieldProps?: any
   colProps?: ColProps

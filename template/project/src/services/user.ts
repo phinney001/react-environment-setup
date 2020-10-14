@@ -2,6 +2,7 @@ import request from "@/utils/request"
 
 // 获取菜单
 export async function queryMenus() {
+  // return Promise.resolve([])
   return request('/admin/users/menus')
 }
 

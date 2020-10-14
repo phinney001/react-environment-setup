@@ -10,6 +10,9 @@ export interface LoginParamsType {
 
 // 登录
 export async function login(params: LoginParamsType) {
+  // return Promise.resolve({
+  //   token: 'HFGJKSHDKGHPOJDS345H26HK4H6K5H7545460974296',
+  // })
   return request('/admin/auth/login-by-password', {
     method: 'POST',
     data: params,
