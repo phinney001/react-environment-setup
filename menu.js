@@ -24,7 +24,7 @@ class Menu {
    */
   getRoutesData(filePath) {
     const fileString = fs.readFileSync(path.join(process.cwd(), filePath), 'utf-8')
-    let objString = fileString.match(/routes: \[([\s\S]*)\],/i)[1]
+    let objString = fileString.match(/routes: \[([\s\S]*) \],/i)[1]
     objString = `[${objString}]`
     let routesData = eval(objString)
     if (routesData) {
@@ -85,5 +85,4 @@ class Menu {
   }
 }
 
-const menu = new Menu()
-menu.start()
+module.exports = Menu
