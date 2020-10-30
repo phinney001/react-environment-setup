@@ -51,3 +51,8 @@
   ```bash
   res router
   ```
+# 生成菜单
+  + 运行命令
+  ```bash
+  res menu
+  ```

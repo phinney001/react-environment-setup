@@ -7,8 +7,16 @@ export const MODAL_EVENT_NAME = Symbol('MODAL_CREATE')
 
 // 新增弹窗
 export function modal(options: any) {
-  event.emit(MODAL_EVENT_NAME, options)
-  return options
+  const proxyOptions = new Proxy(options, {
+    set: function (target, propKey, value, receiver) {
+      proxyOptions?.update?.({
+        [propKey]: value,
+      })
+      return Reflect.set(target, propKey, value, receiver)
+    }
+  })
+  event.emit(MODAL_EVENT_NAME, proxyOptions)
+  return proxyOptions
 }
 
 // 自定义弹窗组件
@@ -74,10 +82,12 @@ const CustomModal: React.FC<{}> = () => {
     !isUnMounted && setModalList((modals: any = []) => {
       return modals.map((item: any) => {
         if (item.id === id) {
-          return getOptions({
-            ...item,
-            ...props
-          })
+          if (props && Object.keys(props)?.length) {
+            return getOptions({
+              ...item,
+              ...props
+            })
+          }
         }
         return item
       })

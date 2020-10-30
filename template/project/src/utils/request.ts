@@ -72,8 +72,32 @@ request.interceptors.request.use((url, options) => {
 	}
 })
 
+/**
+ * 下载文件
+ * @param blobData 文件数据
+ * @param filename 文件名称
+ */
+request.download = function(blobData: any, filename?: string) {
+  const objectUrl = URL.createObjectURL(blobData)
+  const a = document.createElement('a')
+  document.body.appendChild(a)
+  a.setAttribute('style', 'display:none')
+  a.setAttribute('href', objectUrl)
+  a.setAttribute('download', filename || blobData.filename)
+  a.click()
+  document.body.removeChild(a)
+  // 释放URL地址
+  URL.revokeObjectURL(objectUrl)
+}
+
 request.interceptors.response.use(async response => {
-	const res = await response.clone().json()
+	const isFile: any = response.headers.get('content-disposition')
+  const res: any = await (isFile ? response.clone().blob() : response.clone().json())
+  if (isFile) {
+    res.filename = decodeURI(isFile.split('filename=').pop())
+    request.download(res)
+    return res
+  }
 	if (res?.httpStatus === 401) {
 		toLogin()
 		return false

@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { prompt } = require('inquirer')
 const Router = require('./router.js')
+const Menu = require('./menu.js')
 const { green } = require('ansi-colors')
 
 class ReactCli {
@@ -83,6 +84,9 @@ class ReactCli {
     if (projectName === 'router') {
       const router = new Router()
       router.start()
+    } else if (projectName === 'menu') {
+      const menu = new Menu()
+      menu.start()
     } else {
       this.init(projectName)
     }
