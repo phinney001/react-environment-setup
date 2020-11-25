@@ -28,6 +28,7 @@ const CustomModal: React.FC<{}> = () => {
 
   // 获取初始化配置
   const getOptions = (options: any) => {
+    options.origin = Object.assign({}, options)
     if (!options) options = {}
     const { onOk, onCancel } = options
     if (!Reflect.has(options, 'id')) {
@@ -84,8 +85,9 @@ const CustomModal: React.FC<{}> = () => {
         if (item.id === id) {
           if (props && Object.keys(props)?.length) {
             return getOptions({
-              ...item,
-              ...props
+              ...item.origin,
+              ...props,
+              id,
             })
           }
         }

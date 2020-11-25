@@ -72,6 +72,26 @@ request.interceptors.request.use((url, options) => {
 	}
 })
 
+// 错误信息列表
+request.messageList = []
+/**
+ * 处理错误信息
+ * @param msg 错误信息
+ */
+request.dealMsg = function (msg: string) {
+  request.messageList.push(msg)
+  request.messageList = [...new Set(request.messageList)]
+  if (request.messageTimer) {
+    clearInterval(request.messageTimer)
+  }
+  request.messageTimer = setInterval(() => {
+    while (request.messageList.length) {
+      message.error(request.messageList[0])
+      request.messageList.shift()
+    }
+  }, 100)
+}
+
 /**
  * 下载文件
  * @param blobData 文件数据
@@ -103,7 +123,7 @@ request.interceptors.response.use(async response => {
 		return false
 	}
 	if (res?.httpStatus && res?.httpStatus !== 200) {
-		message.error(res.msg)
+		request.dealMsg(res.msg)
 	}
 	return res?.httpStatus === 200 ? (Reflect.has(res, 'data') ? (res.data || true) : res) : false
 })

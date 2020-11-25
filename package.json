@@ -1,6 +1,6 @@
 {
   "name": "react-environment-setup",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "react-environment-setup",
   "main": "init.js",
   "scripts": {
@@ -28,7 +28,9 @@
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "inquirer": "^7.3.3",
-    "package-version-update": "^1.0.3",
     "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "package-version-update": "^1.0.3"
   }
 }
