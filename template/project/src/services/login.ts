@@ -13,10 +13,10 @@ export async function login(params: LoginParamsType) {
   // return Promise.resolve({
   //   token: 'HFGJKSHDKGHPOJDS345H26HK4H6K5H7545460974296',
   // })
-  return request('/admin/auth/login-by-password', {
+  return request('/api/admin/v1/auth/login', {
     method: 'POST',
     data: params,
-  })
+  });
 }
 
 // 获取验证码

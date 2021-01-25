@@ -13,17 +13,17 @@ export default defineConfig({
     hmr: true,
   },
   layout: {
-    name: 'PROJECTNAME',
+    ...defaultSettings,
   },
   locale: {
     // default zh-CN
     default: 'zh-CN',
-    // default true, when it is true, will use `navigator.language` overwrite default
     antd: true,
+    // default true, when it is true, will use `navigator.language` overwrite default
     baseNavigator: true,
   },
   dynamicImport: {
-    loading: '@/components/PageLoading/index',
+    loading: '@ant-design/pro-layout/es/PageLoading',
   },
   targets: {
     ie: 11,
@@ -32,10 +32,11 @@ export default defineConfig({
   routes,
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {
-    // ...darkTheme,
     'primary-color': defaultSettings.primaryColor,
   },
-  // @ts-ignore
+  // esbuild is father build tools
+  // https://umijs.org/plugins/plugin-esbuild
+  esbuild: {},
   title: false,
   ignoreMomentLocale: true,
   proxy: proxy[REACT_APP_ENV || 'dev'],

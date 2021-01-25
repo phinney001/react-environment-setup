@@ -1,12 +1,12 @@
-import React from 'react'
-import { Link } from 'umi'
+import React from 'react';
+import { Link } from 'umi';
 
-import logo from '@/assets/logo.svg'
-import styles from './index.less'
-import CustomModal from '@/components/CustomModal'
+import logo from '@/assets/imgs/logo.svg';
+import styles from './index.less';
+import CustomModal from '@/components/CustomModal';
 
 export interface PassportLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 const PassportLayout: React.FC<PassportLayoutProps> = ({ children }) => {
@@ -26,7 +26,7 @@ const PassportLayout: React.FC<PassportLayoutProps> = ({ children }) => {
       </div>
       <CustomModal />
     </div>
-  )
-}
+  );
+};
 
-export default PassportLayout
+export default PassportLayout;
