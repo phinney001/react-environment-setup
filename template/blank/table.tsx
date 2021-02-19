@@ -3,7 +3,8 @@ import { DynamicFormItem } from '@/components/DynamicForm'
 import { ProColumns } from '@ant-design/pro-table'
 import React, { useEffect } from 'react'
 
-const COMPONENT: React.FC<{}> = () => {
+// @page HEADERTITLE
+const COMPONENT: React.FC<any> = () => {
   // 组件是否已经卸载
   let isUnMounted = false
 
@@ -26,8 +27,8 @@ const COMPONENT: React.FC<{}> = () => {
 
   // 一体化表格props
   const tablePorps: IntegrationTableProps = {
-    headerTitle: 'HEADERTITLE',
     rowKey: 'index',
+    scroll: { x: 1000 },
     columns,
     formItems,
     listProps: {

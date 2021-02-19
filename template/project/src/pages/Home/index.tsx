@@ -6,7 +6,7 @@ import { message, Popconfirm } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { changeUserStatus } from './service'
 
-const Home: React.FC<{}> = () => {
+const Home: React.FC<any> = () => {
   // 组件是否已经卸载
   let isUnMounted = false
   // 状态列表
