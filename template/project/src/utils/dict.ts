@@ -79,7 +79,7 @@ export const getStartEndTime = (times: any[], start = 'startTime', end = 'endTim
   if (isArray(times) && times.length === 2) {
     return {
       [start]: `${moment(times[0]).format('YYYY-MM-DD')} 00:00:00`,
-      [end]: `${moment(times[0]).format('YYYY-MM-DD')} 23:59:59`,
+      [end]: `${moment(times[1]).format('YYYY-MM-DD')} 23:59:59`,
     };
   }
   return {};
