@@ -1,4 +1,5 @@
 import request from "@/utils/request"
+import { NoticeIconData } from '@/layouts/UserLayout/GlobalHeaderRight/components/HeaderNotice';
 
 // 获取菜单
 export async function queryMenus() {
@@ -8,5 +9,5 @@ export async function queryMenus() {
 
 // 获取订阅消息
 export async function queryNotices(): Promise<any> {
-  return request<{ data: API.NoticeIconData[] }>('/api/notices');
+  return request<{ data: NoticeIconData[] }>('/api/notices');
 }

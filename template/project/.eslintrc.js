@@ -5,4 +5,28 @@ module.exports = {
     page: true,
     REACT_APP_ENV: true,
   },
+  rules: {
+    semi: 0,
+    'no-fallthrough': 0,
+    'no-return-assign': 0,
+    'no-param-reassign': 0,
+    'no-useless-escape': 0,
+    'prefer-destructuring': 0,
+    'no-unneeded-ternary': 0,
+    'no-empty': [
+      'error',
+      {
+        allowEmptyCatch: true,
+      },
+    ],
+    'prefer-const': [
+      'error',
+      {
+        destructuring: 'all',
+        ignoreReadBeforeAssign: false,
+      },
+    ],
+    '@typescript-eslint/consistent-type-imports': 0,
+    '@typescript-eslint/no-unused-expressions': 0,
+  },
 };

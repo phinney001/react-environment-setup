@@ -9,19 +9,20 @@ export default [
         path: '/passport/login',
         component: './Passport/Login',
       },
+      { component: './Passport/404' },
     ],
   },
   {
     path: '/',
-    access: 'canAccess',
     routes: [
+      { path: '/', redirect: '/home' },
       {
         path: '/home',
         name: '主页',
         icon: 'smile',
+        access: 'isAdmin',
         component: './Home',
       },
-      { path: '/', redirect: '/home' },
       { component: './Passport/404' },
     ],
   },

@@ -4,7 +4,7 @@ const Settings: LayoutSettings & {
   pwa?: boolean;
   logo?: string;
 } = {
-  navTheme: 'dart',
+  navTheme: 'dark',
   // 拂晓蓝
   primaryColor: '#1890ff',
   layout: 'side',

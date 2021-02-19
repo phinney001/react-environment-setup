@@ -5,6 +5,7 @@ import React from 'react';
 import classNames from 'classnames';
 import NoticeList, { NoticeIconTabProps } from '../NoticeList';
 import styles from './index.less';
+import { NoticeIconData } from '@/layouts/UserLayout/GlobalHeaderRight/components/HeaderNotice';
 
 const { TabPane } = Tabs;
 
@@ -14,7 +15,7 @@ export interface NoticeIconProps {
   className?: string;
   loading?: boolean;
   onClear?: (tabName: string, tabKey: string) => void;
-  onItemClick?: (item: API.NoticeIconData, tabProps: NoticeIconTabProps) => void;
+  onItemClick?: (item: NoticeIconData, tabProps: NoticeIconTabProps) => void;
   onViewMore?: (tabProps: NoticeIconTabProps, e: MouseEvent) => void;
   onTabChange?: (tabTile: string) => void;
   style?: React.CSSProperties;

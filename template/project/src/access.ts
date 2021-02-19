@@ -1,32 +1,39 @@
-import { stringify } from 'qs'
-import { history } from 'umi'
-import { session } from 'phinney-toolkit'
+import { history } from 'umi';
+import { session } from 'phinney-toolkit';
+
+export interface UserInfo {
+  access_token?: string;
+  username?: string;
+  roles?: string[];
+}
 
 // 登录地址
 export const loginPath = '/passport/login'
 // 登录后跳转地址
 export const redirectPath = '/home'
 
-// 设置用户token
-export function setToken(token: string) {
-  session.set('access_token', token)
+// 获取登录后跳转地址
+export function getRedirectPath() {
+  if (isAdmin()) {
+    return '/home'
+  }
+  return redirectPath
 }
 
 // 获取用户token
 export function getToken(isOrigin?: boolean) {
-  const token = session.get('access_token')
-  return isOrigin ? token : (token && `Bearer ${token}`)
+  const token = getUserInfo()?.access_token;
+  return isOrigin ? token : token && `Bearer ${token}`;
 }
 
 // 设置用户信息
-export function setUserInfo(currentUser: API.CurrentUser) {
-  session.set('userinfo', currentUser)
-  session.set('username', currentUser.username)
+export function setUserInfo(currentUser: UserInfo) {
+  session.set('userinfo', currentUser);
 }
 
 // 获取用户信息
 export function getUserInfo() {
-  return session.get('userinfo')
+  return session.get('userinfo');
 }
 
 // 设置菜单信息
@@ -41,23 +48,33 @@ export function getMenus() {
 
 // 获取用户名
 export function getUserName() {
-  return session.get('username')
+  return getUserInfo()?.username;
 }
+
+// 是否是admin
+export function isAdmin() {
+  return Boolean(getUserInfo()?.roles?.includes('ADMIN'));
+}
+
+
 
 // 跳转登录页
 export function toLogin() {
   // 清除缓存
-  session.clear()
+  session.clear();
   history.replace({
     pathname: loginPath,
-    search: stringify({
-      redirect: window.location.href,
-    }),
-  })
+  });
+}
+// 是否已经登录
+export function isLogin() {
+  return !!getToken();
 }
 
-// 是否有权限
-export default function access() {
-  return !!getToken()
+// 路由权限验证
+export default function (initialState: any = {}) {
+  return {
+    isAdmin: () => initialState?.isAdmin
+  };
 }
 

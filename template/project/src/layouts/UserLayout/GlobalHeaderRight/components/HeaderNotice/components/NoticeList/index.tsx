@@ -3,6 +3,7 @@ import { Avatar, List } from 'antd';
 import React from 'react';
 import classNames from 'classnames';
 import styles from './index.less';
+import { NoticeIconData } from '@/layouts/UserLayout/GlobalHeaderRight/components/HeaderNotice';
 
 export interface NoticeIconTabProps {
   count?: number;
@@ -12,12 +13,12 @@ export interface NoticeIconTabProps {
   style?: React.CSSProperties;
   title: string;
   tabKey: string;
-  onClick?: (item: API.NoticeIconData) => void;
+  onClick?: (item: NoticeIconData) => void;
   onClear?: () => void;
   emptyText?: string;
   clearText?: string;
   viewMoreText?: string;
-  list: API.NoticeIconData[];
+  list: NoticeIconData[];
   onViewMore?: (e: any) => void;
 }
 const NoticeList: React.FC<NoticeIconTabProps> = ({
@@ -45,7 +46,7 @@ const NoticeList: React.FC<NoticeIconTabProps> = ({
   }
   return (
     <div>
-      <List<API.NoticeIconData>
+      <List<NoticeIconData>
         className={styles.list}
         dataSource={list}
         renderItem={(item, i) => {

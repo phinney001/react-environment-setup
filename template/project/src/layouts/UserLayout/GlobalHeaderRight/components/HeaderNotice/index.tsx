@@ -6,10 +6,24 @@ import moment from 'moment';
 import NoticeIcon from './components/NoticeIcon';
 import { getUserInfo } from '@/access';
 
+export interface NoticeIconData {
+  id: string;
+  key: string;
+  avatar: string;
+  title: string;
+  datetime: string;
+  type: string;
+  read?: boolean;
+  description: string;
+  clickClose?: boolean;
+  extra: any;
+  status: string;
+}
+
 const getNoticeData = (
-  notices: API.NoticeIconData[],
+  notices: NoticeIconData[],
 ): {
-  [key: string]: API.NoticeIconData[];
+  [key: string]: NoticeIconData[];
 } => {
   if (!notices || notices.length === 0 || !Array.isArray(notices)) {
     return {};
@@ -50,7 +64,7 @@ const getNoticeData = (
   return groupBy(newNotices, 'type');
 };
 
-const getUnreadData = (noticeData: { [key: string]: API.NoticeIconData[] }) => {
+const getUnreadData = (noticeData: { [key: string]: NoticeIconData[] }) => {
   const unreadMsg: {
     [key: string]: number;
   } = {};
@@ -78,7 +92,7 @@ const HeaderNotice = () => {
   // 组件是否已经卸载
   let isUnMounted = false
   const { currentUser } = getUserInfo() || {}
-  let [notices, setNotices] = useState<API.NoticeIconData[]>([]);
+  let [notices, setNotices] = useState<NoticeIconData[]>([]);
 
   useEffect(() => {
     // queryNotices().then(({ data }) => setNotices(data))

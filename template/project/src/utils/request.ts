@@ -55,6 +55,8 @@ const request = extend({
 	credentials: 'include', // 默认请求是否带上cookie
 })
 
+request.baseUrl = '/api';
+
 request.interceptors.request.use((url, options) => {
 	// moment日期少一天解决
 	moment.fn.toISOString = function () {
@@ -62,6 +64,7 @@ request.interceptors.request.use((url, options) => {
 	}
 
 	return {
+		url: request.baseUrl + url,
 		options: {
 			...options,
 			interceptors: true,
@@ -79,17 +82,17 @@ request.messageList = []
  * @param msg 错误信息
  */
 request.dealMsg = function (msg: string) {
-  request.messageList.push(msg)
-  request.messageList = [...new Set(request.messageList)]
-  if (request.messageTimer) {
-    clearInterval(request.messageTimer)
-  }
-  request.messageTimer = setInterval(() => {
-    while (request.messageList.length) {
-      message.error(request.messageList[0])
-      request.messageList.shift()
-    }
-  }, 100)
+	request.messageList.push(msg)
+	request.messageList = [...new Set(request.messageList)]
+	if (request.messageTimer) {
+		clearInterval(request.messageTimer)
+	}
+	request.messageTimer = setInterval(() => {
+		while (request.messageList.length) {
+			message.error(request.messageList[0])
+			request.messageList.shift()
+		}
+	}, 100)
 }
 
 /**
@@ -97,27 +100,27 @@ request.dealMsg = function (msg: string) {
  * @param blobData 文件数据
  * @param filename 文件名称
  */
-request.download = function(blobData: any, filename?: string) {
-  const objectUrl = URL.createObjectURL(blobData)
-  const a = document.createElement('a')
-  document.body.appendChild(a)
-  a.setAttribute('style', 'display:none')
-  a.setAttribute('href', objectUrl)
-  a.setAttribute('download', filename || blobData.filename)
-  a.click()
-  document.body.removeChild(a)
-  // 释放URL地址
-  URL.revokeObjectURL(objectUrl)
+request.download = function (blobData: any, filename?: string) {
+	const objectUrl = URL.createObjectURL(blobData)
+	const a = document.createElement('a')
+	document.body.appendChild(a)
+	a.setAttribute('style', 'display:none')
+	a.setAttribute('href', objectUrl)
+	a.setAttribute('download', filename || blobData.filename)
+	a.click()
+	document.body.removeChild(a)
+	// 释放URL地址
+	URL.revokeObjectURL(objectUrl)
 }
 
-request.interceptors.response.use(async response => {
+request.interceptors.response.use(async (response: any) => {
 	const isFile: any = response.headers.get('content-disposition')
-  const res: any = await (isFile ? response.clone().blob() : response.clone().json())
-  if (isFile) {
-    res.filename = decodeURI(isFile.split('filename=').pop())
-    request.download(res)
-    return res
-  }
+	const res: any = await (isFile ? response.clone().blob() : response.clone().json())
+	if (isFile) {
+		res.filename = decodeURI(isFile.split('filename=').pop())
+		request.download(res)
+		return res
+	}
 	if (res?.httpStatus === 401) {
 		toLogin()
 		return false
@@ -125,7 +128,10 @@ request.interceptors.response.use(async response => {
 	if (res?.httpStatus && res?.httpStatus !== 200) {
 		request.dealMsg(res.msg)
 	}
-	return res?.httpStatus === 200 ? (Reflect.has(res, 'data') ? (res.data || true) : res) : false
+	if (res?.httpStatus === 200) {
+		return Reflect.has(res, 'data') ? res.data || true : res;
+	}
+	return false;
 })
 
 export default request

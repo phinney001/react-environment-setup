@@ -18,7 +18,7 @@ const loginOut = async () => {
   }
 }
 
-const HeaderAvatar: React.FC<{}> = () => {
+const HeaderAvatar: React.FC<any> = () => {
   // 下拉项点击事件
   const onMenuClick = useCallback(
     (event: {

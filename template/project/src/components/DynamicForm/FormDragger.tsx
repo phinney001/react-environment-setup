@@ -3,14 +3,16 @@ import { Input, Spin, message } from 'antd';
 import Dragger from 'antd/lib/upload/Dragger';
 import { InboxOutlined } from '@ant-design/icons';
 import Modal from 'antd/lib/modal/Modal';
-import 'antd/lib/upload/style/index.less'
+import 'antd/lib/upload/style/index.less';
+import request from '@/utils/request';
+import { getToken } from '@/access';
 
 export interface FormDraggerProps {
   only?: boolean;
   icon?: React.ReactNode;
   text?: string;
   hint?: string;
-  initFileList?: any[],
+  onInit?: (cb: (list: any[]) => void) => void;
   onChange: (fileList: any[]) => void;
   [key: string]: any;
 }
@@ -21,45 +23,45 @@ const FormDragger: React.FC<FormDraggerProps> = (props) => {
     icon,
     text = '将文件拖到此处，或点击上传',
     hint = '只能上传 jpg/png 文件',
-    initFileList = [],
+    onInit,
     onChange,
     ...otherProps
-  } = props
+  } = props;
 
   // 组件是否已经卸载
-  let isUnMounted = false
+  let isUnMounted = false;
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewTitle, setPreviewTitle] = useState<string>('');
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
-  const [fileList, setFileList] = useState(initFileList);
+  const [files, setFiles] = useState<any[]>([]);
 
   const draggerProps = {
-    name: 'files',
-    fileList,
+    name: 'file',
+    fileList: files,
     // listType: 'picture',
     showUploadList: !only,
-    action: '/admin/upload/uploadImage',
+    action: `${request.baseUrl}/oss/upload-picture`,
     headers: {
-      Authorization: `Bearer ${sessionStorage.getItem('access_token')}`
+      Authorization: getToken(),
     },
     onChange: ({ file, fileList }: any) => {
       if (only && fileList.length > 1) {
         fileList = [fileList.pop()];
       }
-      fileList = fileList.map((file: any) => {
-        if (file.xhr && file.xhr.status === 200) {
-          const response = JSON.parse(file.xhr.response);
-          file.url = response.data && response.data[0];
+      fileList = fileList.map((fe: any) => {
+        if (fe.xhr && fe.xhr.status === 200) {
+          const response = JSON.parse(fe.xhr.response);
+          fe.url = response.data;
         }
-        return file;
+        return fe;
       });
-      !isUnMounted && setFileList(fileList);
+      !isUnMounted && setFiles(fileList);
       if (file.status === 'uploading' && only) {
         !isUnMounted && setUploading(true);
       }
       if (['done', 'removed'].includes(file.status)) {
-        onChange && onChange(fileList);
+        onChange?.(fileList);
         if (only) {
           !isUnMounted && setUploading(false);
         }
@@ -94,34 +96,33 @@ const FormDragger: React.FC<FormDraggerProps> = (props) => {
       // }
       return isJpgOrPng;
     },
-    ...otherProps
-  }
+    ...otherProps,
+  };
 
   useEffect(() => {
-    !isUnMounted && setFileList(initFileList)
+    onInit?.((initFileList: any[]) => {
+      !isUnMounted && setFiles(initFileList || []);
+    });
+
     return () => {
-      isUnMounted = true
-    }
-  }, [initFileList])
+      isUnMounted = true;
+    };
+  }, [onInit]);
 
   return (
     <>
       <Input type="hidden" />
       <Dragger {...draggerProps}>
         <Spin spinning={uploading} tip="上传中...">
-        {
-          (only && fileList && fileList[0] && fileList[0].url)
-          ?
-          <img src={fileList[0].url} style={{ width: '100%', objectFit: 'cover' }}></img>
-          :
-          <>
-            <p className="ant-upload-drag-icon">
-              {icon ? icon : <InboxOutlined />}
-            </p>
-            <p className="ant-upload-text">{text}</p>
-            <p className="ant-upload-hint">{hint}</p>
-          </>
-        }
+          {only && files?.[0]?.url ? (
+            <img src={files[0].url} style={{ width: '100%', objectFit: 'cover' }}></img>
+          ) : (
+              <>
+                <p className="ant-upload-drag-icon">{icon ? icon : <InboxOutlined />}</p>
+                <p className="ant-upload-text">{text}</p>
+                <p className="ant-upload-hint">{hint}</p>
+              </>
+            )}
         </Spin>
       </Dragger>
       <Modal
@@ -135,7 +136,7 @@ const FormDragger: React.FC<FormDraggerProps> = (props) => {
         <img style={{ width: '100%' }} src={previewImage} />
       </Modal>
     </>
-  )
-}
+  );
+};
 
 export default FormDragger;

@@ -4,10 +4,10 @@ import HeaderSearch from './components/HeaderSearch'
 import styles from './index.less'
 import HeaderNotice from './components/HeaderNotice'
 import HeaderAvatar from './components/HeaderAvatar'
-import access from '@/access'
+import { isLogin } from '@/access'
 
-const GlobalHeaderRight: React.FC<{}> = () => {
-  if (!access()) {
+const GlobalHeaderRight: React.FC<any> = () => {
+  if (!isLogin()) {
     return null
   }
 

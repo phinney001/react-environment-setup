@@ -1,49 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Modal } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import 'antd/lib/upload/style/index.less'
+import { Upload, Modal, Button } from 'antd';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import request from '@/utils/request';
+import { getToken } from '@/access';
 
 export interface FormUploadProps {
-  initFileList?: any[];
   limit?: number;
+  onInit?: (cb: (list: any[]) => void) => void;
   onChange?: (values: any[]) => void;
   [key: string]: any;
 }
 
 const FormUpload: React.FC<FormUploadProps> = (props) => {
-  const {
-    initFileList = [],
-    limit = Infinity,
-    onChange,
-    ...otherProps
-  } = props;
+  const { limit = Infinity, onInit, onChange, ...otherProps } = props;
 
   // 组件是否已经卸载
-  let isUnMounted = false
+  let isUnMounted = false;
   const [previewVisible, setPreviewVisible] = useState<boolean>(false);
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewTitle, setPreviewTitle] = useState<string>('');
-  const [fileList, setFileList] = useState(initFileList);
+  const [files, setFiles] = useState<any[]>([]);
 
-  const uploadProps = {
-    name: 'files',
-    fileList,
-    // listType: 'picture-card',
-    action: '/admin/upload/uploadImage',
+  const uploadProps: any = {
+    name: 'file',
+    fileList: files,
+    listType: 'picture-card',
+    action: `${request.baseUrl}/oss/upload-picture`,
     headers: {
-      Authorization: `Bearer ${sessionStorage.getItem('access_token')}`
+      Authorization: getToken(),
     },
     onChange: ({ file, fileList }: any) => {
-      fileList = fileList.map((file: any) => {
-        if (file.xhr && file.xhr.status === 200) {
-          const response = JSON.parse(file.xhr.response);
-          file.url = response.data && response.data[0];
+      fileList = fileList.map((fe: any) => {
+        if (fe.xhr && fe.xhr.status === 200) {
+          const response = JSON.parse(fe.xhr.response);
+          fe.url = response.data;
         }
-        return file;
+        return fe;
       });
-      !isUnMounted && setFileList(fileList);
+      !isUnMounted && setFiles(fileList);
       if (['done', 'removed'].includes(file.status)) {
-        onChange && onChange(fileList);
+        onChange?.(fileList);
       }
     },
     onPreview: async (file: any) => {
@@ -61,30 +57,36 @@ const FormUpload: React.FC<FormUploadProps> = (props) => {
       if (!isUnMounted) {
         setPreviewImage(file.url || file.preview);
         setPreviewVisible(true);
-        setPreviewTitle(file.name || file.url.substring(file.url.lastIndexOf('/') + 1))
+        setPreviewTitle(file.name || file.url.substring(file.url.lastIndexOf('/') + 1));
       }
     },
-    ...otherProps
-  }
+    ...otherProps,
+  };
 
   useEffect(() => {
-    !isUnMounted && setFileList(initFileList)
-    return () => {
-      isUnMounted = true
-    }
-  }, [initFileList])
+    onInit?.((initFileList: any[]) => {
+      !isUnMounted && setFiles(initFileList || []);
+    });
 
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div className="ant-upload-text">上传</div>
-    </div>
-  );
+    return () => {
+      isUnMounted = true;
+    };
+  }, [onInit]);
+
+  const uploadButton =
+    uploadProps?.listType === 'text' ? (
+      <Button>
+        <UploadOutlined /> {uploadProps?.btnText || '上传'}
+      </Button>
+    ) : (
+      <div>
+        <PlusOutlined />
+        <div className="ant-upload-text">{uploadProps?.btnText || '上传'}</div>
+      </div>
+    );
   return (
     <div className="clearfix">
-      <Upload {...uploadProps}>
-        {fileList.length >= limit ? null : uploadButton}
-      </Upload>
+      <Upload {...uploadProps}>{files.length >= limit ? null : uploadButton}</Upload>
       <Modal
         visible={previewVisible}
         title={previewTitle}

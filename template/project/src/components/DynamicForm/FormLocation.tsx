@@ -1,7 +1,13 @@
-import React, { forwardRef, ForwardRefRenderFunction, useEffect, useImperativeHandle, useState } from 'react'
-import { Input } from 'antd'
+import React, {
+  forwardRef,
+  ForwardRefRenderFunction,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from 'react';
+import { Input } from 'antd';
 
-declare const BMap: any
+declare const BMap: any;
 
 /**
  * 坐标接口
@@ -9,8 +15,8 @@ declare const BMap: any
  * lat 维度
  */
 export interface Coord {
-  lng: number
-  lat: number
+  lng: number;
+  lat: number;
 }
 
 /**
@@ -18,8 +24,8 @@ export interface Coord {
  * point 地图坐标点
  */
 export interface MapEvent {
-  point: Coord
-  [key: string]: any
+  point: Coord;
+  [key: string]: any;
 }
 
 /**
@@ -27,8 +33,8 @@ export interface MapEvent {
  * address 详细地址
  */
 export interface MapGeocoder {
-  address: string
-  [key: string]: any
+  address: string;
+  [key: string]: any;
 }
 
 /**
@@ -42,14 +48,14 @@ export interface MapGeocoder {
  * addEventListener 地图事件监听
  */
 export interface MapProps {
-  clearOverlays: () => void
-  addOverlay: (marker: any) => void
-  panTo: (point: any) => void
-  centerAndZoom: (point: any, zoom: number) => void
-  addControl: (data: any) => void
-  enableScrollWheelZoom: (bool: boolean) => void
-  addEventListener: (eventName: string, eventFunc: Function) => void
-  [key: string]: any
+  clearOverlays: () => void;
+  addOverlay: (marker: any) => void;
+  panTo: (point: any) => void;
+  centerAndZoom: (point: any, zoom: number) => void;
+  addControl: (data: any) => void;
+  enableScrollWheelZoom: (bool: boolean) => void;
+  addEventListener: (eventName: string, eventFunc: Function) => void;
+  [key: string]: any;
 }
 
 /**
@@ -62,13 +68,13 @@ export interface MapProps {
  * point 地图标记点
  */
 export interface FormLocationProps {
-  height?: number
-  center?: [number, number]
-  zoom?: number
-  config?: any
-  searchText?: string
-  point?: Coord
-  [key: string]: any
+  height?: number;
+  center?: [number, number];
+  zoom?: number;
+  config?: any;
+  searchText?: string;
+  point?: Coord;
+  [key: string]: any;
 }
 
 /**
@@ -77,105 +83,101 @@ export interface FormLocationProps {
  * coord 地图标记点坐标
  */
 export interface FormLocationRefs {
-  address?: string
-  coord?: Coord
+  address?: string;
+  coord?: Coord;
 }
 
-const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps> = (props, ref) => {
-  const {
-    height = 600,
-    center,
-    zoom = 13,
-    config = {},
-    searchText,
-    point,
-  } = props
+const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps> = (
+  props,
+  ref,
+) => {
+  const { height = 600, center, zoom = 13, config = {}, searchText, point } = props;
 
   // 组件是否已经卸载
-  let isUnMounted = false
-  const [timestamp] = useState(Date.now())
-  let [map, setMap] = useState<MapProps>()
-  let [address, setAddress] = useState<string>()
-  let [coord, setCoord] = useState<Coord | undefined>(point)
+  let isUnMounted = false;
+  const [timestamp] = useState(Date.now());
+  const [map, setMap] = useState<MapProps>();
+  const [address, setAddress] = useState<string>();
+  const [coord, setCoord] = useState<Coord | undefined>(point);
 
   // 暴露给父组件数据
   useImperativeHandle(ref, () => ({
     address,
     coord,
-  }))
+  }));
 
   // 初始化地图
   const initMap = () => {
-    const baiduMap: MapProps = new BMap.Map(`baiduMap${timestamp}`, config)
-    baiduMap.centerAndZoom(new BMap.Point(...(center || [113.694882, 34.80107])), zoom)
-    baiduMap.addControl(new BMap.NavigationControl())
-    baiduMap.enableScrollWheelZoom(true)
-    !isUnMounted && setMap(baiduMap)
+    const baiduMap: MapProps = new BMap.Map(`baiduMap${timestamp}`, config);
+    baiduMap.centerAndZoom(new BMap.Point(...(center || [113.694882, 34.80107])), zoom);
+    baiduMap.addControl(new BMap.NavigationControl());
+    baiduMap.enableScrollWheelZoom(true);
+    !isUnMounted && setMap(baiduMap);
     baiduMap.addEventListener('click', (e: MapEvent) => {
-      !isUnMounted && setCoord(e?.point)
-    })
-  }
+      !isUnMounted && setCoord(e?.point);
+    });
+  };
 
   // 画标记点
-  const drawPoint = (point: Coord) => {
-    if (map && point.lng && point.lat) {
+  const drawPoint = (points: Coord) => {
+    if (map && points.lng && points.lat) {
       // 添加标记
-      map.clearOverlays()
-      const mPoint = new BMap.Point(point.lng, point.lat)
-      const marker = new BMap.Marker(mPoint)
-      map.addOverlay(marker)
-      map.panTo(mPoint)
+      map.clearOverlays();
+      const mPoint = new BMap.Point(points.lng, points.lat);
+      const marker = new BMap.Marker(mPoint);
+      map.addOverlay(marker);
+      map.panTo(mPoint);
       // 获取地址
-      const geocoder = new BMap.Geocoder()
-      geocoder.getLocation(point, (res: MapGeocoder) => {
-        !isUnMounted && setAddress(res?.address)
-      })
+      const geocoder = new BMap.Geocoder();
+      geocoder.getLocation(points, (res: MapGeocoder) => {
+        !isUnMounted && setAddress(res?.address);
+      });
     }
-  }
+  };
 
   // 关键词搜索
   const handleSearch = (value: string) => {
     if (map) {
-      map.clearOverlays()
+      map.clearOverlays();
       const local = new BMap.LocalSearch(map, {
         renderOptions: { map, panel: `baiduMapResult${timestamp}` },
         pageCapacity: 6,
         // onInfoHtmlSet: (res: MapGeocoder) => {
         //   console.log(res)
         // },
-      })
-      local.search(value)
+      });
+      local.search(value);
     }
-  }
+  };
 
   // 初始化
   useEffect(() => {
-    initMap()
+    initMap();
     return () => {
-      isUnMounted = true
-    }
-  }, [])
+      isUnMounted = true;
+    };
+  }, []);
 
   // 初始画标记点
   useEffect(() => {
     if (map && coord) {
-      drawPoint(coord)
+      drawPoint(coord);
     }
-  }, [map, coord])
-  
+  }, [map, coord]);
+
   // 初始关键词搜索
   useEffect(() => {
     if (map && searchText) {
-      handleSearch(searchText)
+      handleSearch(searchText);
     }
-  }, [map, searchText])
+  }, [map, searchText]);
 
   // 中心点变化更新
   useEffect(() => {
     if (map && center) {
-      map.panTo(new BMap.Point(...center))
+      map.panTo(new BMap.Point(...center));
     }
-  }, [map, center])
+  }, [map, center]);
 
   return (
     <div style={{ position: 'relative' }}>
@@ -187,10 +189,11 @@ const FormLocation: ForwardRefRenderFunction<FormLocationRefs, FormLocationProps
       />
       <div
         id={`baiduMapResult${timestamp}`}
-        style={{ width: 200, height: 500, position: 'absolute', top: 40, right: 0, zIndex: 12 }} />
+        style={{ width: 200, height: 500, position: 'absolute', top: 40, right: 0, zIndex: 12 }}
+      />
       <div style={{ width: '100%', height }} id={`baiduMap${timestamp}`} />
     </div>
-  )
-}
+  );
+};
 
-export default forwardRef(FormLocation)
+export default forwardRef(FormLocation);

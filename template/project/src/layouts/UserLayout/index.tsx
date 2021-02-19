@@ -4,7 +4,7 @@ import GlobalHeaderRight from './GlobalHeaderRight'
 
 import { BasicLayoutProps, MenuDataItem } from '@ant-design/pro-layout'
 import CustomModal from '@/components/CustomModal'
-import access, { getMenus, loginPath, toLogin } from '@/access'
+import { isLogin, getMenus, loginPath, toLogin } from '@/access'
 
 export default (): BasicLayoutProps => {
   // 处理菜单数据
@@ -30,7 +30,7 @@ export default (): BasicLayoutProps => {
     // 页面跳转事件
     onPageChange: () => {
       // 如果没有登录，重定向到 login
-      if (!access() && history.location.pathname !== loginPath) {
+      if (!isLogin() && history.location.pathname !== loginPath) {
         toLogin()
       }
     },
@@ -40,10 +40,5 @@ export default (): BasicLayoutProps => {
       return recursion(allUserMenu)
       // return getMenus()
     },
-    // 面包屑渲染
-    breadcrumbRender: (routers = []) => [
-      { path: '/', breadcrumbName: '首页' },
-      ...routers,
-    ]
   }
 }
