@@ -41,6 +41,7 @@ export interface ModalProps extends MProps {
  * 请求配置
  * @param url 请求地址
  * @param method 请求方式
+ * @param urlHandle 请求地址处理
  * @param paramsHandle 请求参数处理
  * @param responseHandle 请求结果处理
  * @param requestBefore 请求之前处理方法
@@ -58,6 +59,7 @@ export interface ModalProps extends MProps {
 export interface RequestConfig {
   url?: string;
   method?: string;
+  urlHandle?: (params: any, record?: any) => any;
   paramsHandle?: (params: any, record?: any) => any;
   responsesHandle?: (params: any) => any;
   requestBefore?: (params?: any) => void;
@@ -172,14 +174,16 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
 
   // 请求处理
   const handleRequest = async (requestProps: RequestConfig = {}, data?: any, record?: any) => {
-    const { url, method, requestBefore, requestAfter, paramsHandle, responseHandle } = requestProps;
+    const { url, method, requestBefore, requestAfter, urlHandle, paramsHandle, responseHandle } = requestProps;
     // 请求之前处理方法
     await requestBefore?.();
     // 请求参数处理
     const params = paramsHandle ? await paramsHandle?.(data, record) : data;
+    // 请求地址处理
+    const requestUrl = urlHandle ? await urlHandle?.(data, record) : (url || '');
     if (!requestProps.requestType) requestProps.requestType = 'data';
     const requestFunc = requestProps?.requestFunc || request;
-    const res = await requestFunc(url || '', {
+    const res = await requestFunc(requestUrl, {
       method,
       [requestProps.requestType]: params,
     });

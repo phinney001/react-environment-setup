@@ -5,8 +5,8 @@ import { queryMenus } from '@/services/user';
 import { LockTwoTone, MailTwoTone, MobileTwoTone, UserOutlined } from '@ant-design/icons';
 import { message, Tabs } from 'antd';
 import { FormInstance } from 'antd/lib/form';
-import React, { useState, useModel } from 'react';
-import { history } from 'umi';
+import React, { useState } from 'react';
+import { history, useModel } from 'umi';
 
 import styles from './index.less';
 
