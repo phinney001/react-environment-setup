@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
-import { PageContainer } from '@ant-design/pro-layout'
 
-const COMPONENT: React.FC<any> = () => {
+const COMPONENT: React.FC = () => {
   // 组件是否已经卸载
   let isUnMounted = false
 
@@ -13,7 +12,7 @@ const COMPONENT: React.FC<any> = () => {
   }, [])
 
   return (
-    <PageContainer></PageContainer>
+    <></>
   )
 }
 

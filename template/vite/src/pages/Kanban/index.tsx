@@ -3,16 +3,16 @@ import { DynamicFormItem } from '@/components/DynamicForm'
 import React, { useEffect } from 'react'
 import { TableColumnProps } from 'antd'
 
-// @page HEADERTITLE
-const COMPONENT: React.FC = () => {
+// @page 看板
+const Kanban: React.FC = () => {
   // 组件是否已经卸载
   let isUnMounted = false
 
   // 表格项
   const columns: TableColumnProps<any>[] = [
     {
-      title: 'title',
-      dataIndex: 'dataIndex',
+      title: '用户名',
+      dataIndex: 'user',
     },
   ]
 
@@ -20,8 +20,8 @@ const COMPONENT: React.FC = () => {
   const filterItems: DynamicFormItem[] = [
     {
       type: 'text',
-      label: 'label',
-      name: 'name',
+      label: '用户名',
+      name: 'user',
     },
   ]
   
@@ -29,8 +29,8 @@ const COMPONENT: React.FC = () => {
   const formItems: DynamicFormItem[] = [
     {
       type: 'text',
-      label: 'label',
-      name: 'name',
+      label: '用户名',
+      name: 'user',
       required: true,
     },
   ]
@@ -59,4 +59,4 @@ const COMPONENT: React.FC = () => {
   )
 }
 
-export default COMPONENT
+export default Kanban

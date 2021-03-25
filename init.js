@@ -52,11 +52,21 @@ class ReactCli {
         type: 'input',
         message: '请输入项目中文名称：'
       },
+      {
+        name: 'project-type',
+        type: 'list',
+        choices: ['vite', 'webpack', 'umi'],
+        message: '请选择项目脚手架类型：'
+      },
     ])
     // 项目文件夹名称
     if (!projectName) projectName = answers['project-name-en']
+    // 没有选择脚手架类型退出命令
+    if (!answers['project-type']) {
+      process.exit()
+    }
     // 项目模板地址
-    const templatePath = path.join(__dirname, './template/project')
+    const templatePath = path.join(__dirname, `./template/${answers['project-type']}`)
     // 项目地址
     const projectPath = path.join(process.cwd(), projectName)
 
