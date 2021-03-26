@@ -1,11 +1,12 @@
 import React, {
   forwardRef,
   ForwardRefRenderFunction,
+  ReactNode,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
-} from 'react';
+} from 'react'
 import {
   Form,
   Input,
@@ -19,19 +20,24 @@ import {
   Col,
   message,
   Switch,
-} from 'antd';
-import { FormProps } from 'antd/es/form';
-import TextArea from 'antd/lib/input/TextArea';
-import FormDragger from './FormDragger';
-import { EnvironmentOutlined } from '@ant-design/icons';
-import { checkPhone } from './FormValidate';
-import FormUpload from './FormUpload';
-import { modal } from '../CustomModal';
-import FormLocation, { FormLocationRefs } from './FormLocation';
-import { FormInstance, FormItemProps, Rule } from 'antd/lib/form';
-import { ColProps } from 'antd/lib/col';
-import { getArray, isNotEmptyArray } from 'phinney-toolkit';
+  ColProps,
+  FormProps,
+  FormInstance,
+  FormItemProps,
+  Radio,
+  Checkbox,
+} from 'antd'
+import FormDragger from './FormDragger'
+import { EnvironmentOutlined } from '@ant-design/icons'
+import { checkPhone } from './FormValidate'
+import FormUpload from './FormUpload'
+import FormLocation, { FormLocationRefs } from './FormLocation'
+import { Rule } from 'antd/lib/form'
+import { getArray, isNotEmptyArray } from 'phinney-toolkit'
+import { modal } from '../CustomModal'
 
+
+const { TextArea }= Input
 /**
  * 动态表单表单项接口
  * @param type 表单类型
@@ -51,35 +57,37 @@ import { getArray, isNotEmptyArray } from 'phinney-toolkit';
  * @param render 表单渲染方法
  */
 export interface DynamicFormItem {
-  type: string;
-  label?: string;
-  labelHidden?: boolean;
-  name?: string;
-  span?: number;
-  required?: boolean;
-  rules?: Rule[];
-  countDown?: number;
-  options?: any[];
-  formItemProps?: FormItemProps;
-  fieldProps?: any;
-  colProps?: ColProps;
-  beforeRender?: () => any;
-  afterRender?: () => any;
-  render?: (form?: any, formValues?: any) => any;
-  [key: string]: any;
+  type: string
+  label?: string
+  labelHidden?: boolean
+  name?: string
+  span?: number
+  required?: boolean
+  rules?: Rule[]
+  countDown?: number
+  options?: any[]
+  formItemProps?: FormItemProps
+  fieldProps?: any
+  colProps?: ColProps
+  beforeRender?: () => any
+  afterRender?: () => any
+  render?: (form?: any, formValues?: any) => any
+  [key: string]: any
 }
 
 /**
  * 动态表单props接口
  * @param formValues 表单form元素数值
+ * @param rowProps 表单行元素props
  * @param formProps 表单form元素props
  * @param formItems 表单项元素列表
  */
 export interface DynamicFormProps {
-  formValues?: any;
-  formProps?: FormProps;
-  formItems: DynamicFormItem[];
-  [key: string]: any;
+  formValues?: any
+  rowProps?: any
+  formProps?: FormProps
+  formItems: DynamicFormItem[]
+  [key: string]: any
 }
 
 /**
@@ -88,17 +96,17 @@ export interface DynamicFormProps {
  * @param locationRef 选点地图实例
  */
 export interface DynamicFormRefs {
-  form?: FormInstance;
-  locationRef: FormLocationRefs;
+  form?: FormInstance
+  locationRef: FormLocationRefs
 }
 
 // 地图选点数据名称
-export const locationName = 'LOCATION_VALUE';
+export const locationName = 'LOCATION_VALUE'
 
-const FormItem = Form.Item;
-const { RangePicker: DateRangePicker } = DatePicker;
-const { RangePicker: TimeRangePicker } = TimePicker;
-const { Password } = Input;
+const FormItem = Form.Item
+const { RangePicker: DateRangePicker } = DatePicker
+const { RangePicker: TimeRangePicker } = TimePicker
+const { Password } = Input
 
 /**
  * 输入类型表单
@@ -109,14 +117,14 @@ const { Password } = Input;
  * @param captcha 验证码文本框
  * @param number 数值框
  */
-const enterMap = {
+const enterMap: Record<string, ReactNode> = {
   text: Input,
   password: Password,
   textarea: TextArea,
   phone: Input,
   captcha: Input,
   number: InputNumber,
-};
+}
 
 /**
  * 选择类型表单
@@ -127,8 +135,13 @@ const enterMap = {
  * @param select 下拉选择框
  * @param cascader 多级选择框
  * @param location 位置选择框
+ * @param checkbox 多选框
+ * @param radio 单选框
+ * @param switch 开关
+ * @param upload 上传文件框
+ * @param dragger 拖拽上传框
  */
-const selectMap = {
+const selectMap: Record<string, ReactNode> = {
   date: DatePicker,
   dateRange: DateRangePicker,
   time: TimePicker,
@@ -136,151 +149,155 @@ const selectMap = {
   select: Select,
   cascader: Cascader,
   location: Input,
-};
+  checkbox: Checkbox.Group,
+  radio: Radio.Group,
+  switch: Switch,
+  upload: FormUpload,
+  dragger: FormDragger,
+}
 
 /**
  * 其他类型表单
- * @param upload 上传文件框
- * @param dragger 拖拽上传框
- * @param switch 开关
  * @param button 按钮
  * @param custom 自定义
  */
-const otherMap = {
-  upload: FormUpload,
-  dragger: FormDragger,
-  switch: Switch,
+const otherMap: Record<string, ReactNode> = {
   button: Button,
   custom: Input,
-};
+}
 
 // 图片字符串数组转上传图片file对象
 export const imgUrlToUploadFile = (imgs: string[]) => {
-  const images = getArray(imgs).filter(Boolean);
+  const images = getArray(imgs).filter(Boolean)
   if (isNotEmptyArray(images)) {
     return images.map((img: string, index: number) => ({
       uid: index,
       name: img.split('/').pop(),
       status: 'done',
       url: img,
-    }));
+    }))
   }
-  return [];
-};
+  return []
+}
 
 const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> = (props, ref) => {
-  const { formValues, formProps = {}, formItems = [] } = props;
+  const { formValues, rowProps, formProps = {}, formItems = [] } = props
 
   // 组件是否已经卸载
-  let isUnMounted = false;
+  let isUnMounted = false
   // 选点地图实例数据
-  let locationRef: any = useRef();
+  let locationRef: any = useRef()
   // 验证码相关state
-  const [count, setCount] = useState<number>(60);
-  const [countDown, setCountDown] = useState<number>(60);
-  const [timing, setTiming] = useState(false);
+  const [count, setCount] = useState<number>(60)
+  const [countDown, setCountDown] = useState<number>(60)
+  const [timing, setTiming] = useState(false)
   // 强制更新
-  const [forceUpdate, setForceUpdate] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(false)
   // 表单实例
-  const [form] = Form.useForm();
+  const [form] = Form.useForm()
 
   // 删除含有冲突的表单字段
   if (Reflect.has(formProps, 'form')) {
-    Reflect.deleteProperty(formProps, 'form');
+    Reflect.deleteProperty(formProps, 'form')
   }
 
   // 暴露给父组件数据
   useImperativeHandle(ref, () => ({
     form,
     locationRef,
-  }));
+  }))
 
   // 验证码倒计时
   useEffect(() => {
-    let interval: number = 0;
+    let interval: number = 0
     if (timing) {
       interval = window.setInterval(() => {
         !isUnMounted &&
           setCount((preSecond) => {
             if (preSecond <= 1) {
-              !isUnMounted && setTiming(false);
-              clearInterval(interval);
+              !isUnMounted && setTiming(false)
+              clearInterval(interval)
               // 重置秒数
-              return countDown;
+              return countDown
             }
-            return preSecond - 1;
-          });
-      }, 1000);
+            return preSecond - 1
+          })
+      }, 1000)
     }
     return () => {
-      clearInterval(interval);
-      isUnMounted = true;
-    };
-  }, [timing]);
+      clearInterval(interval)
+      isUnMounted = true
+    }
+  }, [timing])
 
   useEffect(() => {
     if (form && formValues) {
-      form.setFieldsValue({ ...formValues });
+      form.setFieldsValue({ ...formValues })
       formItems.forEach((f) => {
         if (['upload', 'dragger'].includes(f.type)) {
-          f.fieldProps.onInit.initFileList(formValues[f.name || '']);
+          f.fieldProps.onInit.initFileList(formValues[f.name || ''])
         }
-      });
+      })
     }
-  }, [form, formValues]);
+  }, [form, formValues])
 
   // 根据表单类型获取提示前缀
   const getTipPrefixByType = (type: string) => {
     if (enterMap[type]) {
-      return '请输入';
+      return '请输入'
     }
     if (selectMap[type] && !type.endsWith('Range')) {
-      return '请选择';
+      return '请选择'
     }
-    return '';
-  };
+    return ''
+  }
 
   // 构建表单元素
   const buildField = (item: DynamicFormItem) => {
-    const { label, type, fieldProps, render } = item;
-    const tipPrefix = getTipPrefixByType(type);
+    const { label, type, fieldProps, render } = item
+    const tipPrefix = getTipPrefixByType(type)
     const defaultProps = {
       ...(tipPrefix ? { placeholder: `${tipPrefix}${label}` } : {}),
-    };
-    const prop = Object.assign(defaultProps, fieldProps);
-    const FormField = enterMap[type] || selectMap[type] || otherMap[type];
-    const clickFunc = prop.onClick;
-    const changeFunc = prop.onChange;
-    const enterFunc = prop.onEnter;
+    }
+    const prop = Object.assign(defaultProps, fieldProps)
+    const FormField: any = enterMap[type] || selectMap[type] || otherMap[type]
+    const clickFunc = prop.onClick
+    const changeFunc = prop.onChange
+    const enterFunc = prop.onEnter
 
     // 重组click事件
     if (clickFunc) {
       prop.onClick = () => {
-        clickFunc(form, item);
-      };
+        clickFunc(form, item)
+      }
     }
     // 重组变化事件
     if (changeFunc) {
       prop.onChange = (event: any) => {
-        changeFunc(event, form, item, formItems);
-        !isUnMounted && setForceUpdate(!forceUpdate);
-      };
+        changeFunc(event, form, item, formItems)
+        !isUnMounted && setForceUpdate(!forceUpdate)
+      }
     }
     // 回车事件
     if (enterFunc && !prop.onPressEnter) {
       prop.onPressEnter = (event: any) => {
         if (event.keyCode === 13) {
-          enterFunc(form, item, event);
+          enterFunc(form, item, event)
         }
-      };
-      Reflect.deleteProperty(prop, 'onEnter');
+      }
+      Reflect.deleteProperty(prop, 'onEnter')
     }
 
     if (type === 'button') {
-      return <FormField {...prop}>{label}</FormField>;
+      return <FormField {...prop}>{label}</FormField>
     }
     if (type === 'switch') {
-      return <FormField defaultChecked={Boolean(formValues[item.name || ''])} {...prop} />;
+      return (
+        <>
+          <Input type="hidden" />
+          <FormField defaultChecked={Boolean(formValues[item.name || ''])} {...prop} />
+        </>
+      )
     }
     if (type === 'custom') {
       return (
@@ -288,19 +305,19 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
           <Input type="hidden" />
           {render?.(form, formValues)}
         </>
-      );
+      )
     }
 
-    return <FormField {...prop} />;
-  };
+    return <FormField {...prop} />
+  }
 
   // 构建表单验证规则
   const buildRules = ({ rules = [], required, type, label }: DynamicFormItem) => {
     if (required) {
-      return [{ required: true, message: `${getTipPrefixByType(type)}${label}!` }, ...rules];
+      return [{ required: true, message: `${getTipPrefixByType(type)}${label}!` }, ...rules]
     }
-    return rules;
-  };
+    return rules
+  }
 
   // 处理表单项默认值
   const handleField = (item: DynamicFormItem) => {
@@ -311,22 +328,22 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
       case 'password':
       // 多行文本框
       case 'textarea':
-        break;
+        break
       // 手机文本框
       case 'phone':
-        item.rules = [{ pattern: checkPhone, message: `${item.label}格式不正确！` }];
-        break;
+        item.rules = [{ pattern: checkPhone, message: `${item.label}格式不正确！` }]
+        break
       // 验证码
       case 'captcha':
         item.formItemProps = {
           style: { width: 'calc(100% - 126px)' },
-        };
+        }
         item.colProps = {
           style: { display: 'flex', justifyContent: 'space-between' },
-        };
+        }
         if (item.countDown && !isUnMounted) {
-          setCountDown(item.countDown);
-          setCount(item.countDown);
+          setCountDown(item.countDown)
+          setCount(item.countDown)
         }
         item.afterRender = () => {
           return (
@@ -336,16 +353,16 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
                 style={{ width: 120 }}
                 size="large"
                 onClick={async () => {
-                  const bool = await item.getCaptcha?.();
-                  !isUnMounted && bool && setTiming(true);
+                  const bool = await item.getCaptcha?.()
+                  !isUnMounted && bool && setTiming(true)
                 }}
               >
                 {timing ? `${count} 秒` : '获取验证码'}
               </Button>
             </>
-          );
-        };
-        break;
+          )
+        }
+        break
       // 数值框
       case 'number':
       // 日期选择框
@@ -359,46 +376,50 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
         item.fieldProps = {
           style: { width: '100%' },
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 下拉选择框
       case 'select':
+      // 多选框
+      case 'checkbox':
+      // 单选框
+      case 'radio':
         item.fieldProps = {
           options: item?.options || [],
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 多级选择框
       case 'cascader':
         item.fieldProps = {
           options: item?.options || [],
           changeOnSelect: true,
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 位置选择框
       case 'location':
         item.fieldProps = {
           style: { width: 'calc(100% - 32px)' },
           ...item?.fieldProps,
-        };
+        }
         item.afterRender = () => {
           return (
             <>
               <EnvironmentOutlined
                 style={{ position: 'absolute', right: 12, top: 5, fontSize: 22 }}
                 onClick={() => {
-                  const point = form?.getFieldValue(locationName) || formValues;
+                  const point = form?.getFieldValue(locationName) || formValues
                   let mapProps = {
                     ...item?.mapProps,
                     ...(point ? { point } : {}),
-                  };
+                  }
                   if (item.searchText) {
-                    const searchText = form?.getFieldValue(item.searchText);
+                    const searchText = form?.getFieldValue(item.searchText)
                     mapProps = {
                       ...mapProps,
                       ...(searchText && !point ? { searchText } : {}),
-                    };
+                    }
                   }
                   modal({
                     width: 1000,
@@ -408,22 +429,22 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
                     ),
                     onOk: () => {
                       if (!locationRef?.coord) {
-                        message.error('请先在地图上选择地址！');
-                        return false;
+                        message.error('请先在地图上选择地址！')
+                        return false
                       }
                       form?.setFieldsValue({
                         [item.name || '']: locationRef.address,
                         [locationName]: locationRef.coord,
-                      });
-                      return true;
+                      })
+                      return true
                     },
-                  });
+                  })
                 }}
               />
             </>
-          );
-        };
-        break;
+          )
+        }
+        break
       // 上传文件框
       case 'upload':
       // 拖拽上传框
@@ -432,53 +453,53 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
           onChange: (fileList: any) => {
             form?.setFieldsValue({
               [item?.name || '']: fileList.map((m: any) => m.url).join(','),
-            });
+            })
           },
           onInit: (cb: any) => {
-            item.fieldProps.onInit.initFileList = cb;
+            item.fieldProps.onInit.initFileList = cb
           },
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 按钮
       case 'button':
-        item.labelHidden = true;
+        item.labelHidden = true
         item.fieldProps = {
           style: { width: '100%' },
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 开关
       case 'switch':
         item.fieldProps = {
           onChange: (e: any, forms: any) => {
             forms?.setFieldsValue({
               [item?.name || '']: e ? 1 : 0,
-            });
+            })
           },
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       // 自定义
       case 'custom':
         item.fieldProps = {
           type: 'hidden',
           ...item?.fieldProps,
-        };
-        break;
+        }
+        break
       default:
-        break;
+        break
     }
-  };
+  }
 
   // 渲染表单元素
   const renderFormItem = () => {
-    return formItems?.map((item: DynamicFormItem) => {
-      handleField(item);
+    return formItems?.map((item: DynamicFormItem, index: number) => {
+      handleField(item)
       return (
         <Col
           span={item.span || 24}
-          key={item.name}
+          key={index}
           style={{ position: 'relative' }}
           {...item.colProps}
         >
@@ -493,15 +514,15 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
           </FormItem>
           {item.afterRender?.()}
         </Col>
-      );
-    });
-  };
+      )
+    })
+  }
 
   return (
     <Form form={form} {...formProps}>
-      <Row gutter={24}>{renderFormItem()}</Row>
+      <Row gutter={24} style={{ margin: 0 }} {...rowProps}>{renderFormItem()}</Row>
     </Form>
-  );
-};
+  )
+}
 
-export default forwardRef(DynamicForm);
+export default forwardRef(DynamicForm)

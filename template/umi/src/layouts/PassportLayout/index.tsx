@@ -1,32 +1,28 @@
-import React from 'react';
-import { Link } from 'umi';
+import config from '../config'
+import { Footer } from 'antd/lib/layout/layout'
+import { Link } from 'react-router-dom'
+import { getRedirectPath } from '@/access'
+import styles from './index.less'
 
-import logo from '@/assets/imgs/logo.svg';
-import styles from './index.less';
-import CustomModal from '@/components/CustomModal';
-
-export interface PassportLayoutProps {
-  children: React.ReactNode;
-}
-
-const PassportLayout: React.FC<PassportLayoutProps> = ({ children }) => {
+export default ({ children }: any) => {
   return (
-    <div className={styles.passportContainer}>
-      <div className={styles.passportContent}>
-        <div className={styles.passportTop}>
-          <div className={styles.passportHeader}>
-            <Link to="/">
-              <img className={styles.passportLogo} src={logo} alt="logo" />
-              <span className={styles.passportTitle}>PROJECTNAME</span>
+    <>
+      <main className={styles.passportContainer}>
+        <div className={styles.passportContent}>
+          <div className={styles.passportTop}>
+            {/* 标题 */}
+            <Link to={getRedirectPath()} className={styles.passportHeader}>
+              <img className={styles.passportLogo} src={config.logo} alt="图标" />
+              <h1 className={styles.passportTitle}>{config.title}</h1>
             </Link>
+            {/* 描述 */}
+            <div className={styles.passportDesc}>{config.description}</div>
           </div>
-          <div className={styles.passportDesc}>PROJECTNAME</div>
+          <div className={styles.passportMain}>{children}</div>
         </div>
-        <div className={styles.passportMain}>{children}</div>
-      </div>
-      <CustomModal />
-    </div>
-  );
-};
-
-export default PassportLayout;
+        {/* 页脚 */}
+        <Footer className={styles.passportFooter}>{config.copyright}</Footer>
+      </main>
+    </>
+  )
+}

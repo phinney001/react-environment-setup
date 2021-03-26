@@ -580,7 +580,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
 
       return {
         data,
-        total: res.total,
+        total: res?.total,
         current,
         pageSize
       }

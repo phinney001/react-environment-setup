@@ -55,7 +55,7 @@ npm run serve
     - RouteAuth.tsx `路由验证组件`
   - store `存储共享`
     - actions.ts `action名称`
-    - index.ts `store服务`
+    - index.tsx `store服务`
     - state.ts `state初始数据`
   - utils `工具包`
     - chart.ts `echarts图表快捷方法`
@@ -64,7 +64,7 @@ npm run serve
   - access.ts `用户权限验证`
   - favicon.svg `图标`
   - main.less `公共样式`
-  - main.ts `入口文件`
+  - main.tsx `入口文件`
   - theme.less `公共样式常量`
   - typings.d.ts `ts类型扩展文件`
 - buildServer.js `运行dist目录服务配置`  

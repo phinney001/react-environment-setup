@@ -19,14 +19,11 @@ module.exports = {
         allowEmptyCatch: true,
       },
     ],
-    'prefer-const': [
-      'error',
-      {
-        destructuring: 'all',
-        ignoreReadBeforeAssign: false,
-      },
-    ],
+    'prefer-const': 0,
+    'prefer-template': 0,
     '@typescript-eslint/consistent-type-imports': 0,
     '@typescript-eslint/no-unused-expressions': 0,
+    '@typescript-eslint/no-unused-vars': 0,
+    '@typescript-eslint/no-shadow': 0,
   },
-};
+}

@@ -1,0 +1,60 @@
+// 公共页头-用户信息
+@page-main-height: 50px;
+@page-userinfo-padding: 0 12px;
+@page-userinfo-hover: rgba(0, 0, 0, 0.025);
+@page-userinfo-transition: all 0.3s;
+@page-avatar-size: 24px;
+@page-avatar-radius: 50%;
+@page-username-size: 14px;
+@page-username-color: rgba(0, 0, 0, 0.65);
+@page-username-space: 8px;
+@page-dropdown-width: 160px;
+
+// 公共页脚
+@page-footer-color: #888;
+@page-footer-size: 14px;
+@page-footer-transition: all 0.15s linear;
+
+// 用户信息
+.pageUserInfo {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: @page-userinfo-padding;
+  cursor: pointer;
+  transition: @page-userinfo-transition;
+
+  &:hover {
+    background: @page-userinfo-hover;
+  }
+}
+
+// 头像
+.pageAvatar {
+  width: @page-avatar-size;
+  height: @page-avatar-size;
+  object-fit: cover;
+  border-radius: @page-avatar-radius;
+}
+
+// 用户名
+.pageUserName {
+  margin-left: @page-username-space;
+  color: @page-username-color;
+  font-weight: normal;
+  font-size: @page-username-size;
+  line-height: normal;
+}
+
+// 用户信息下拉框
+.pageDropdownMenu {
+  width: @page-dropdown-width;
+}
+
+// 页脚
+.pageFooter {
+  color: @page-footer-color !important;
+  font-size: @page-footer-size !important;
+  text-align: center;
+  transition: @page-footer-transition;
+}

@@ -1,4 +1,7 @@
-export default [
+import { IRoute } from 'umi'
+
+// 路由列表
+const routes: IRoute[] = [
   {
     path: '/passport',
     layout: false,
@@ -9,22 +12,64 @@ export default [
         path: '/passport/login',
         component: './Passport/Login',
       },
-      { component: './Passport/404' },
     ],
   },
   {
     path: '/',
     routes: [
-      { path: '/', redirect: '/home' },
       {
-        path: '/home',
-        name: '主页',
-        icon: 'smile',
+        path: '/kanban',
+        name: '看板',
+        icon: 'dashboard',
         access: 'isAdmin',
-        component: './Home',
+        component: './Kanban',
       },
-      { component: './Passport/404' },
     ],
   },
-  { component: './Passport/404' },
 ]
+
+/**
+ * 处理路由列表
+ * @param routes 路由列表
+ * @param level 路由层级
+ */
+function handleRoutes(routes: any[], level = 0): any[] {
+  return routes.reduce((total: any[], current: any, index: number) => {
+    const { path, ...others } = current
+    // 是否是最后一个路由
+    const isLast = index === routes?.length - 1
+    // 是否含有重定向
+    const hasRedirect = path && !index && level > 0
+    // 是否含有404
+    const has404 = path && isLast && level > 0
+    // 路径
+    const pathArr = path?.split('/')
+    pathArr.pop()
+
+    return [
+      ...total,
+      ...(hasRedirect
+        ? [
+            {
+              path: pathArr.join('/') || '/',
+              redirect: path,
+            },
+          ]
+        : []),
+      {
+        path,
+        ...others,
+        ...(others?.routes ? { routes: handleRoutes(others.routes, level + 1) } : {}),
+      },
+      ...(has404
+        ? [
+            {
+              component: './Passport/404',
+            },
+          ]
+        : []),
+    ]
+  }, [])
+}
+
+export default handleRoutes(routes)

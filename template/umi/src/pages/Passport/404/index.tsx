@@ -1,18 +1,18 @@
-import { Button, Result } from 'antd';
-import React from 'react';
-import { history } from 'umi';
+import { getRedirectPath } from '@/access'
+import { Button, Result } from 'antd'
+import { history } from 'umi'
 
-const NoFoundPage: React.FC<any> = () => (
-  <Result
-    status="404"
-    title="404"
-    subTitle="抱歉，你访问的页面不存在"
-    extra={
-      <Button type="primary" onClick={() => history.push('/')}>
-        返回首页
-      </Button>
-    }
-  />
-)
-
-export default NoFoundPage;
+export default () => {
+  return (
+    <Result
+      status="404"
+      title="404"
+      subTitle="抱歉，您访问的页面不存在。"
+      extra={
+        <Button type="primary" onClick={() => history.push(getRedirectPath())}>
+          返回首页
+        </Button>
+      }
+    />
+  )
+}

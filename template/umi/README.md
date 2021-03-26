@@ -1,57 +1,81 @@
 # PROJECTNAME
 
-This project is initialized with [PROJECTNAME](https://pro.ant.design). Follow is the quick guide for how to use.
+## 安装依赖
 
-## Environment Prepare
-
-Install `node_modules`:
-
-```bash
+```
 npm install
+```
+
+## 开发模式运行
+
+```
+npm run dev
 ```
 
 or
 
-```bash
-yarn
+```
+npm run start
 ```
 
-## Provided Scripts
+## 编译项目
 
-PROJECTNAME provides some useful script to help you quick start and build with web project, code style check and test.
-
-Scripts provided in `package.json`. It's safe to modify or add additional script:
-
-### Start project
-
-```bash
-npm start
 ```
-
-### Build project
-
-```bash
 npm run build
 ```
 
-### Check code style
+## 运行编译后项目
 
-```bash
-npm run lint
+```
+npm run serve
 ```
 
-You can also use script to auto fix some lint error:
+## 环境和依赖
 
-```bash
-npm run lint:fix
-```
+- node
+- umi
+- react
+- [ant-design](https://ant.design/components/overview-cn) - Ant Design
+- [ant-design-pro](https://beta-pro.ant.design/docs/getting-started-cn) - Ant Design Pro
 
-### Test code
+## 目录结构
 
-```bash
-npm test
-```
-
-## More
-
-You can view full document on our [official website](https://pro.ant.design). And welcome any feedback in our [github](https://github.com/ant-design/ant-design-pro).
+- config `公共配置`
+  - config.dev.ts `开发环境专用配置`
+  - config.ts `环境配置`
+  - defaultSettings.ts `公共主题配置`
+  - proxy.ts `反向代理配置`
+  - routes.ts `路由配置`
+- mock `mock数据`
+- public `页面图标`
+- src
+  - .umi `umi缓存目录`
+  - assets `资源存放`
+  - components `组件存放`
+    - CustomModal `自定义弹窗组件及方法`
+    - DynamicForm `动态表单组件`
+    - FilterForm `过滤表单组件`
+    - IntegrationTable `一体化表格组件`
+  - e2e `e2e测试代码`
+  - hooks `自定义钩子函数`
+  - layouts `公共布局`
+    - PassportLayout `未登录公共布局`
+    - UserLayout `登录后公共布局`
+    - config.ts `公共配置常量`
+  - locales `国际化语言包`
+  - pages `页面组件`
+    - document.ejs `网页入口模板`
+  - utils `工具包`
+    - chart.ts `echarts图表快捷方法`
+    - dict.ts `公共词典`
+    - request.ts `公共请求服务`
+    - utils.ts `工具包`
+  - access.ts `用户权限验证`
+  - app.tsx `入口文件`
+  - global.less `公共样式`
+  - global.tsx `pwa`
+  - typings.d.ts `ts类型扩展文件`
+- .eslintrc.js `tslint配置文件`
+- .prettierrc.js `提交格式化配置文件`
+- .stylelintrc.js `提交格式化样式配置文件`
+- tsconfig.json `typescript配置`

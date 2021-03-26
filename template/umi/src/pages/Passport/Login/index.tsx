@@ -1,114 +1,119 @@
-import { getUserName, isAdmin, getRedirectPath, setUserInfo, setMenus } from '@/access';
-import DynamicForm, { DynamicFormItem } from '@/components/DynamicForm';
-import { login } from '@/services/login';
-import { queryMenus } from '@/services/user';
-import { LockTwoTone, MailTwoTone, MobileTwoTone, UserOutlined } from '@ant-design/icons';
-import { message, Tabs } from 'antd';
-import { FormInstance } from 'antd/lib/form';
-import React, { useState } from 'react';
-import { history, useModel } from 'umi';
+import { message, Tabs, FormInstance } from 'antd'
+import { useEffect, useState } from 'react'
+import DynamicForm, { DynamicFormItem } from '@/components/DynamicForm'
+import { UserOutlined, LockTwoTone, MobileTwoTone, MailTwoTone } from '@ant-design/icons'
+import { getArray } from 'phinney-toolkit'
+import { getRedirectPath, getUserName, isAdmin, setMenus, setUserInfo } from '@/access'
+import styles from './index.less'
+import { login, queryMenus } from './service'
+import { history, useModel } from 'umi'
 
-import styles from './index.less';
-
-const { TabPane } = Tabs;
-
-const Login: React.FC<any> = () => {
+export default () => {
+  // 组件是否已经卸载
+  let isUnMounted = false
   // 登录方式选中项
-  const [tabActive, setTabActive] = useState('1');
+  const [tabActive, setTabActive] = useState('1')
   // 登录loading
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false)
   // 全局初始数据
-  const { setInitialState } = useModel('@@initialState');
+  const { setInitialState } = useModel('@@initialState')
 
   // 登录提交
   const submit = async (form: FormInstance) => {
     if (form) {
       try {
-        const values: any = await form.validateFields();
-        setSubmitLoading(true);
-        const res = await login(values);
+        !isUnMounted && setSubmitLoading(true)
+
+        const values: any = await form.validateFields()
+        const res = await login(values)
+
         if (res?.access_token) {
           setUserInfo({
             username: values.username,
             ...res,
-          });
-          const menuRes = await queryMenus();
+          })
+
+          // 获取菜单
+          const menuRes: any = await queryMenus()
+          setMenus(getArray(menuRes?.data))
+
+          // 设置全局初始数据
           setInitialState({
             username: getUserName(),
             isAdmin: isAdmin(),
-          });
-          setMenus(menuRes?.menus);
-          message.success('登录成功！');
-          setSubmitLoading(false);
-          history.push(getRedirectPath());
-        } else {
-          setSubmitLoading(false);
+          })
+
+          message.success('登录成功！')
+          !isUnMounted && setSubmitLoading(false)
+
+          // 跳转首页
+          history.push(getRedirectPath())
         }
-      } catch {
-        setSubmitLoading(false);
-      }
+      } catch {}
+
+      !isUnMounted && setSubmitLoading(false)
     }
-  };
+  }
 
   // 表单项
   const formItems: DynamicFormItem[] = [
     ...(tabActive === '1'
       ? [
-        {
-          type: 'text',
-          name: 'username',
-          label: '账号',
-          labelHidden: true,
-          required: true,
-          fieldProps: {
-            size: 'large',
-            onEnter: submit,
-            prefix: <UserOutlined className={styles.loginIcon} style={{ color: '#1890ff' }} />,
+          {
+            type: 'text',
+            name: 'username',
+            label: '账号',
+            labelHidden: true,
+            required: true,
+            fieldProps: {
+              size: 'large',
+              onEnter: submit,
+              prefix: <UserOutlined className={styles.loginIcon} style={{ color: '#1890ff' }} />,
+            },
           },
-        },
-        {
-          type: 'password',
-          name: 'password',
-          label: '密码',
-          labelHidden: true,
-          required: true,
-          fieldProps: {
-            size: 'large',
-            onEnter: submit,
-            prefix: <LockTwoTone className={styles.loginIcon} />,
+          {
+            type: 'password',
+            name: 'password',
+            label: '密码',
+            labelHidden: true,
+            required: true,
+            fieldProps: {
+              size: 'large',
+              onEnter: submit,
+              prefix: <LockTwoTone className={styles.loginIcon} />,
+            },
           },
-        },
-      ]
+        ]
       : [
-        {
-          type: 'phone',
-          name: 'mobile',
-          label: '手机号',
-          labelHidden: true,
-          required: true,
-          fieldProps: {
-            size: 'large',
-            onEnter: submit,
-            prefix: <MobileTwoTone className={styles.loginIcon} />,
+          {
+            type: 'phone',
+            name: 'mobile',
+            label: '手机号',
+            labelHidden: true,
+            required: true,
+            fieldProps: {
+              size: 'large',
+              onEnter: submit,
+              prefix: <MobileTwoTone className={styles.loginIcon} />,
+            },
           },
-        },
-        {
-          type: 'captcha',
-          name: 'captcha',
-          label: '验证码',
-          labelHidden: true,
-          required: true,
-          getCaptcha: async () => {
-            message.success('获取验证码成功！');
-            return true;
+          {
+            type: 'captcha',
+            name: 'captcha',
+            label: '验证码',
+            labelHidden: true,
+            required: true,
+            getCaptcha: async () => {
+              message.success('获取验证码成功！')
+              return true
+            },
+            fieldProps: {
+              size: 'large',
+              onEnter: submit,
+              prefix: <MailTwoTone className={styles.loginIcon} />,
+            },
           },
-          fieldProps: {
-            size: 'large',
-            onEnter: submit,
-            prefix: <MailTwoTone className={styles.loginIcon} />,
-          },
-        },
-      ]),
+        ]),
 
     {
       type: 'button',
@@ -122,7 +127,14 @@ const Login: React.FC<any> = () => {
         style: { marginTop: 24, width: '100%' },
       },
     },
-  ];
+  ]
+
+  // 初始化加载数据
+  useEffect(() => {
+    return () => {
+      isUnMounted = true
+    }
+  }, [])
 
   return (
     <div className={styles.loginContainer}>
@@ -131,15 +143,13 @@ const Login: React.FC<any> = () => {
         animated={false}
         activeKey={tabActive}
         onChange={(activeKey) => {
-          setTabActive(activeKey);
+          !isUnMounted && setTabActive(activeKey)
         }}
       >
-        <TabPane tab="账户密码登录" key="1"></TabPane>
-        <TabPane tab="手机号登录" key="2"></TabPane>
+        <Tabs.TabPane tab="账户密码登录" key="1"></Tabs.TabPane>
+        <Tabs.TabPane tab="手机号登录" key="2"></Tabs.TabPane>
       </Tabs>
       <DynamicForm formItems={formItems} />
     </div>
-  );
-};
-
-export default Login;
+  )
+}

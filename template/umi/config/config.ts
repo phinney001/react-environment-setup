@@ -12,9 +12,11 @@ export default defineConfig({
   dva: {
     hmr: true,
   },
+  // https://umijs.org/zh-CN/plugins/plugin-layout
   layout: {
     ...defaultSettings,
   },
+  // https://umijs.org/zh-CN/plugins/plugin-locale
   locale: {
     // default zh-CN
     default: 'zh-CN',

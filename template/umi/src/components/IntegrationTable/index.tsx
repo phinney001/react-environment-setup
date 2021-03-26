@@ -5,36 +5,65 @@ import React, {
   ForwardRefRenderFunction,
   useImperativeHandle,
   forwardRef,
-} from 'react';
-import ProTable, { ActionType, ProTableProps } from '@ant-design/pro-table';
-import { FormProps } from 'antd/lib/form';
-import DynamicForm, { DynamicFormItem, locationName } from '../DynamicForm';
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, message, Popconfirm, Divider } from 'antd';
-import { PageContainer } from '@ant-design/pro-layout';
-import request from '@/utils/request';
-import { modal } from '../CustomModal';
-import { FormInstance } from 'antd/es/form';
-import { ModalProps as MProps } from 'antd/lib/modal';
-import { PopconfirmProps } from 'antd/es/popconfirm';
-import { getNumber, isFunction, sum } from 'phinney-toolkit';
+  ReactElement,
+  isValidElement,
+} from 'react'
+import DynamicForm, { DynamicFormItem, locationName } from '../DynamicForm'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  FullscreenOutlined,
+  FullscreenExitOutlined,
+} from '@ant-design/icons'
+import {
+  Button,
+  message,
+  Popconfirm,
+  Divider,
+  FormProps,
+  FormInstance,
+  PopconfirmProps,
+  TableProps,
+  Table,
+  PaginationProps,
+  Card,
+  Space,
+  Tooltip,
+} from 'antd'
+import request from '@/utils/request'
+import {
+  getArray,
+  getNumber,
+  getObject,
+  getString,
+  isFunction,
+  isNotEmptyArray,
+  isNotNullOrUndefined,
+  isNumber,
+  isString,
+  objectMerge,
+  sum,
+} from 'phinney-toolkit'
+import { CustomModalProps, modal } from '../CustomModal'
+import FilterForm, { FilterFormProps } from '../FilterForm'
 
 /**
  * 弹窗配置
- * @param width 弹窗宽度
- * @param title 弹窗标题
+ * @param formProps 弹窗表单props
  * @param formItems 弹窗表单配置列表
+ * @param stateHandle 弹窗state处理方法
+ * @param formItemsHandle 弹窗表单项处理方法
  * @param formValuesHandle 弹窗数据处理方法
  * @param openBefore 弹窗打开之前处理方法
  */
-export interface ModalProps extends MProps {
-  width?: number;
-  title?: string;
-  formProps?: FormProps;
-  formItems?: DynamicFormItem[];
-  formValuesHandle?: (params: any) => any;
-  openBefore?: (params?: any) => void;
-  [key: string]: any;
+export interface ModalProps extends CustomModalProps {
+  formProps?: FormProps
+  formItems?: DynamicFormItem[]
+  stateHandle?: (state: any) => Record<string, any>
+  formItemsHandle?: (formItems: any, vm: any) => DynamicFormItem[]
+  formValuesHandle?: (params: any) => any
+  openBefore?: (params: any) => void
+  [key: string]: any
 }
 
 /**
@@ -48,6 +77,7 @@ export interface ModalProps extends MProps {
  * @param requestAfter 请求之后处理方法
  * @param requestFunc 自定义request方法
  * @param requestType 请求参数类型
+ * @param contentType 请求头类型
  * @param btnText 按钮显示文字
  * @param btnClick 按钮点击事件(仅支持自定义操作项)
  * @param loadingMsg 请求中提示文字
@@ -57,23 +87,24 @@ export interface ModalProps extends MProps {
  * @param aProps a标签props方法
  */
 export interface RequestConfig {
-  url?: string;
-  method?: string;
-  urlHandle?: (params: any, record?: any) => any;
-  paramsHandle?: (params: any, record?: any) => any;
-  responsesHandle?: (params: any) => any;
-  requestBefore?: (params?: any) => void;
-  requestAfter?: (params?: any) => void;
-  requestFunc?: (url?: string, options?: any) => any;
-  requestType?: 'params' | 'data';
-  btnText?: string | ((record?: any) => string);
-  btnClick?: (record?: any, callback?: () => void) => void;
-  loadingMsg?: string;
-  successMsg?: string;
-  modalProps?: ModalProps;
-  popProps?: PopconfirmProps;
-  aProps?: (record?: any) => any;
-  [key: string]: any;
+  url?: string
+  method?: string
+  urlHandle?: (params: any, record: any) => any
+  paramsHandle?: (params: any, record: any) => any
+  responseHandle?: (res: any) => any
+  requestBefore?: (params: any, record: any) => void
+  requestAfter?: (res: any) => void
+  requestFunc?: (url?: string, options?: any) => any
+  requestType?: 'params' | 'data'
+  contentType?: 'json' | 'form'
+  btnText?: string | ((record: any) => string)
+  btnClick?: (record?: any, callback?: () => void) => void
+  loadingMsg?: string
+  successMsg?: string
+  modalProps?: ModalProps
+  popProps?: PopconfirmProps
+  aProps?: (record: any) => any
+  [key: string]: any
 }
 
 /**
@@ -82,20 +113,32 @@ export interface RequestConfig {
  * @param props 按钮请求配置
  */
 export interface OperatingItem {
-  type: 'pop' | 'modal' | 'custom' | string;
-  props?: RequestConfig | undefined;
+  type: 'pop' | 'modal' | 'custom' | string
+  props?: RequestConfig
+}
+
+/**
+ * 表格实例接口
+ * @param reload 重新加载表格
+ * @param getSelected 获取表格行选中项
+ * @param clearSelected 清空表格行选中项
+ * @param reset 清除过滤表单
+ */
+export interface ActionRefProps {
+  reload?: (page?: number) => void
+  getSelected?: () => any[]
+  clearSelected?: () => void
+  reset?: () => void
 }
 
 /**
  * 一体化表格refs接口
  * @param filterform 搜索表单实例
- * @param modalform 弹窗表单实例
  * @param actionRef 表格实例
  */
 export interface IntegrationTableRefs {
-  filterform?: FormInstance;
-  modalform?: FormInstance;
-  actionRef?: ActionType;
+  filterform?: FormInstance
+  actionRef?: ActionRefProps
 }
 
 /**
@@ -104,19 +147,25 @@ export interface IntegrationTableRefs {
  * @param addProps 添加数据配置
  * @param updateProps 更新数据配置
  * @param deleteProps 删除数据配置
+ * @param headerTitle 标题&操作按钮
+ * @param toolBarRender 表格工具栏
  * @param handleOperating 处理/新增操作项
  * @param formItems 新增/编辑弹窗表单配置列表
- * @param isInModal 表格是否嵌套在弹窗中
+ * @param filterItems 过滤表单配置列表
+ * @param filterProps 过滤表单props
  */
-export interface IntegrationTableProps extends ProTableProps<any, any> {
-  listProps?: RequestConfig;
-  addProps?: RequestConfig;
-  updateProps?: RequestConfig;
-  deleteProps?: RequestConfig;
-  handleOperating?: (data: OperatingItem[]) => OperatingItem[];
-  formItems?: DynamicFormItem[];
-  isInModal?: boolean;
-  [key: string]: any;
+export interface IntegrationTableProps extends TableProps<any> {
+  listProps?: RequestConfig
+  addProps?: RequestConfig
+  updateProps?: RequestConfig
+  deleteProps?: RequestConfig
+  headerTitle?: string | ((addButton: ReactElement, actionRef: ActionRefProps) => ReactElement)
+  toolBarRender?: false | ((setting: ReactElement[], actionRef: ActionRefProps) => ReactElement[])
+  handleOperating?: (data: OperatingItem[]) => OperatingItem[]
+  formItems?: DynamicFormItem[]
+  filterItems?: DynamicFormItem[]
+  filterProps?: FilterFormProps
+  [key: string]: any
 }
 
 const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, IntegrationTableProps> = (
@@ -130,167 +179,324 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
     deleteProps,
     handleOperating,
     formItems,
-    isInModal,
+    filterItems,
+    filterProps,
     ...otherProps
-  } = props;
+  } = props
 
   // 组件是否已经卸载
-  let isUnMounted = false;
-  // 弹窗表单数据
-  const [formValues, setFormValues] = useState<any>();
-  // 弹窗表单类型
-  const [formType, setFormType] = useState<any>();
-  // 过滤表单实例
-  const filterForm: any = useRef();
-  // 弹窗动态表单实例
-  let modalForm: any = useRef();
-  // 表格实例
-  const actionRef: any = useRef<ActionType>();
-  // 表格props
-  const tableProps = otherProps || {};
-  const { rowKey, columns } = tableProps;
+  let isUnMounted = false
 
-  // 删除含有冲突的表单字段
-  if (Reflect.has(tableProps, 'actionRef')) {
-    Reflect.deleteProperty(tableProps, 'actionRef');
+  // 内容区域元素
+  const containerRef: any = useRef()
+
+  // 表格数据
+  const [tableData, setTableData] = useState<any>([])
+  // 表格loading
+  const [tableLoading, setTableLoading] = useState<boolean>(false)
+  // 表格分页配置
+  const [tablePagination, setTablePagination] = useState<PaginationProps>({
+    current: 1,
+    pageSize: 10,
+  })
+  // 表格行选中项配置
+  const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([])
+  // 表格是否全屏显示
+  const [fullscreen, setFullscreen] = useState<boolean>(false)
+
+  // 过滤表单实例
+  const [filterForm, setFilterForm] = useState<FormInstance>()
+
+  // 弹窗表单数据
+  const [formValues, setFormValues] = useState<any>()
+  // 弹窗表单类型
+  const [formType, setFormType] = useState<any>()
+  // 弹窗动态表单实例
+  let modalForm: any = useRef()
+
+  // 过滤表单配置
+  filterProps = {
+    ref: (fForm: FormInstance) => {
+      !isUnMounted && setFilterForm(fForm)
+    },
+    isInCard: true,
+    formItems: getArray(filterItems),
+    resetProps: {
+      onClick: ({ values }: any) => {
+        getTableData({
+          ...tablePagination,
+          ...values,
+        })
+      },
+    },
+    submitProps: {
+      loading: tableLoading,
+      onClick: ({ values }: any) => {
+        getTableData({
+          ...tablePagination,
+          ...values,
+        })
+      },
+    },
+    ...filterProps,
   }
-  if (Reflect.has(tableProps, 'formRef')) {
-    Reflect.deleteProperty(tableProps, 'formRef');
+
+  // 表格实例
+  const actionRef: ActionRefProps = {
+    // 重新加载表格
+    reload: (current?: number) => {
+      getTableData({
+        ...tablePagination,
+        ...filterForm?.getFieldsValue?.(),
+        ...(isNumber(current) ? { current } : {}),
+      })
+    },
+    // 获取表格行选中项
+    getSelected: () => {
+      return selectedRowKeys
+    },
+    // 清空表格行选中项
+    clearSelected: () => {
+      !isUnMounted && setSelectedRowKeys([])
+    },
+    // 清除过滤表单
+    reset: () => {
+      filterForm?.resetFields?.()
+    },
   }
-  // 分页参数默认值
-  if (!Reflect.has(tableProps, 'pagination')) {
-    tableProps.pagination = {
-      size: 'default',
-      showQuickJumper: true,
-    };
+  // 表格props
+  const tableProps: any = {
+    ...otherProps,
+    // 表格分页
+    ...(otherProps?.pagination !== false
+      ? {
+          pagination: {
+            showQuickJumper: true,
+            showSizeChanger: true,
+            showTotal: (total: number, range: number[]) =>
+              `第 ${range[0]}-${range[1]} 条/总共 ${total} 条`,
+            ...tablePagination,
+            ...otherProps?.pagination,
+          },
+        }
+      : {}),
+    // 表格行选中项
+    ...(otherProps?.rowSelection
+      ? {
+          rowSelection: {
+            selectedRowKeys,
+            preserveSelectedRowKeys: true,
+            onChange: setSelectedRowKeys,
+            ...otherProps?.rowSelection,
+          },
+        }
+      : {}),
+    // 表格数据
+    dataSource: tableData,
+    // 表格loading
+    loading: tableLoading,
+    // 分页、排序、筛选变化事件
+    onChange: (pagination: any, filters: any, sorter: any, extra: any) => {
+      const { action } = extra
+      if (action === 'paginate' && tableProps.pagination) {
+        getTableData({
+          ...pagination,
+          ...filterForm?.getFieldsValue?.(),
+        })
+      }
+      otherProps.onChange?.(pagination, filters, sorter, extra)
+    },
   }
+
+  const { rowKey, columns } = tableProps
 
   // 暴露给父组件数据
   useImperativeHandle(ref, () => ({
-    filterForm: filterForm?.current,
-    modalForm: modalForm?.current,
-    actionRef: actionRef?.current,
-  }));
+    filterForm,
+    actionRef,
+  }))
 
   // 请求处理
-  const handleRequest = async (requestProps: RequestConfig = {}, data?: any, record?: any) => {
-    const { url, method, requestBefore, requestAfter, urlHandle, paramsHandle, responseHandle } = requestProps;
+  async function handleRequest(requestProps: RequestConfig = {}, data?: any, record?: any) {
+    const {
+      url,
+      method,
+      requestBefore,
+      requestAfter,
+      urlHandle,
+      paramsHandle,
+      responseHandle,
+    } = requestProps
     // 请求之前处理方法
-    await requestBefore?.();
+    await requestBefore?.(data, record)
     // 请求参数处理
-    const params = paramsHandle ? await paramsHandle?.(data, record) : data;
+    const params = paramsHandle ? await paramsHandle?.(data, record) : data
     // 请求地址处理
-    const requestUrl = urlHandle ? await urlHandle?.(data, record) : (url || '');
-    if (!requestProps.requestType) requestProps.requestType = 'data';
-    const requestFunc = requestProps?.requestFunc || request;
+    const requestUrl = urlHandle ? await urlHandle?.(data, record) : getString(url)
+    if (!requestProps.requestType) requestProps.requestType = 'data'
+    const requestFunc: any =
+      requestProps?.requestFunc || ((url: any, options: any) => request(url, options))
     const res = await requestFunc(requestUrl, {
       method,
       [requestProps.requestType]: params,
-    });
+      contentType: requestProps.contentType,
+    })
     // 请求之后处理方法
-    await requestAfter?.();
+    await requestAfter?.(res)
     // 请求结果处理
-    const result = responseHandle ? await responseHandle?.(res) : res;
-    return result;
-  };
+    const result = responseHandle ? await responseHandle?.(res) : res
+    return result
+  }
 
   // 获取弹窗标题
-  const getModalTitle = (requestProps?: RequestConfig, prefixText: string = '') => {
-    if (requestProps?.modalProps?.title) return requestProps?.modalProps?.title;
-    return prefixText;
-  };
+  function getModalTitle(requestProps?: RequestConfig, prefixText: string = '') {
+    if (requestProps?.modalProps?.title) return requestProps?.modalProps?.title
+    return prefixText
+  }
 
   // 打开表单弹窗
-  const openModal = async (requestProps?: RequestConfig) => {
-    const modalProps = requestProps?.modalProps;
+  async function openModal(requestProps?: RequestConfig) {
+    const modalProps = requestProps?.modalProps
     // 弹窗打开之前调用
-    await modalProps?.openBefore?.();
-    const record = (await modalProps?.formValuesHandle?.(formValues)) || formValues;
+    await modalProps?.openBefore?.(formValues)
+    const record = (await modalProps?.formValuesHandle?.(formValues)) || formValues
     // 动态表单元素
-    const modalFormItems = modalProps?.formItems;
-    let modalFormContent: React.ReactNode;
-    if (modalFormItems) {
-      modalFormContent = (
-        <DynamicForm
-          ref={(refs: any) => (modalForm = refs)}
-          formValues={record}
-          formProps={modalProps?.formProps}
-          formItems={modalFormItems}
-        />
-      );
+    const modalFormItems = modalProps?.formItems
+    let modalFormContent: React.ReactNode
+    let formState: Record<string, any> = {}
+    if (modalFormItems || modalProps?.formItemsHandle) {
+      formState = {
+        formItems: modalFormItems,
+        formProps: modalProps?.formProps,
+        formValues: record,
+      }
+      modalFormContent = (vm: any) => {
+        const { formItems, formProps, formValues } = vm.state
+        return (
+          <DynamicForm
+            ref={(refs: any) => (modalForm = refs)}
+            formItems={
+              isFunction(modalProps?.formItemsHandle)
+                ? modalProps?.formItemsHandle?.(formItems, vm)
+                : formItems
+            }
+            formProps={formProps}
+            formValues={formValues}
+          />
+        )
+      }
     }
+
+    // 状态
+    let state: Record<string, any> = {
+      record,
+      actionRef,
+      ...formState,
+    }
+    // 方法
+    let funcs = {}
+    // 渲染方法
+    let render: any = modalFormContent
+    if (isValidElement(modalProps?.content)) {
+      render = () => modalProps?.content
+    } else if (isFunction(modalProps?.content)) {
+      render = modalProps?.content
+    } else {
+      state = objectMerge(state, modalProps?.content?.state)
+      if (modalProps?.content?.render) {
+        render = modalProps?.content?.render
+      }
+      funcs = {
+        ...modalProps?.content,
+      }
+    }
+    if (isFunction(modalProps?.stateHandle)) {
+      state = {
+        ...modalProps?.stateHandle(state),
+      }
+    }
+
+    // 弹窗实例
+    let modalRef: any
     // 打开弹窗
-    modal({
+    modalRef = modal({
       bodyStyle: { padding: '32px 40px 48px' },
       ...modalProps,
-      ...(modalFormItems ? { formItems: modalFormItems } : {}),
       onOk: async () => {
         if (isFunction(modalProps?.onOk)) {
           const modalParams: any = {
             form: modalForm?.form,
             record,
-          };
-          const okReturn = await modalProps?.onOk(modalParams);
-          if (okReturn && !isUnMounted) {
-            setFormType(null);
-            setFormValues(null);
+            actionRef,
+            modalRef,
           }
-          return okReturn;
+          const okReturn = await modalProps?.onOk(modalParams)
+          if (okReturn && !isUnMounted) {
+            setFormType(null)
+            setFormValues(null)
+          }
+          return okReturn
         }
         // 如果有表单发起请求
         if (modalForm?.form) {
           try {
-            const formData = await modalForm.form?.validateFields?.();
-            const hide = message.loading(requestProps?.loadingMsg || '正在操作');
+            const formData = await modalForm.form?.validateFields?.()
+            const hide = message.loading(requestProps?.loadingMsg || '正在操作')
             const res = await handleRequest(
               requestProps,
               {
                 ...modalForm?.form?.getFieldValue?.('extraParams'),
                 ...formData,
                 ...modalForm?.form?.getFieldValue?.(locationName),
-                ...(typeof rowKey === 'string' && record[rowKey]
-                  ? { [rowKey]: record[rowKey] }
-                  : {}),
+                ...(isString(rowKey) && record[rowKey] ? { [rowKey]: record[rowKey] } : {}),
               },
               record,
-            );
+            )
             if (res) {
-              hide();
-              actionRef?.current?.reload();
-              message.success(requestProps?.successMsg || '操作成功！');
+              hide()
+              actionRef.reload?.()
+              message.success(requestProps?.successMsg || '操作成功！')
               if (!isUnMounted) {
-                setFormType(null);
-                setFormValues(null);
+                setFormType(null)
+                setFormValues(null)
               }
-              return true;
+              return true
             }
-            hide();
+            hide()
           } catch (e) {}
-          return false;
+          return false
         }
-        return true;
+        return true
       },
       onCancel: () => {
         if (isFunction(modalProps?.onCancel)) {
-          modalProps?.onCancel(actionRef?.current);
+          modalProps?.onCancel({
+            form: modalForm?.form,
+            record,
+            actionRef,
+            modalRef,
+          } as any)
         }
         if (!isUnMounted) {
-          setFormType(null);
-          setFormValues(null);
+          setFormType(null)
+          setFormValues(null)
         }
       },
-      content: () => {
-        return typeof modalProps?.content === 'function'
-          ? modalProps?.content(modalFormContent, record)
-          : modalProps?.content || modalFormContent;
+      content: {
+        ...funcs,
+        state,
+        render: (vm: any) =>
+          render?.(vm, () => {
+            return modalRef
+          }),
       },
-    });
-  };
+    })
+  }
 
   // 是否有新增操作
   if (addProps || tableProps?.headerTitle) {
-    const headerTitle: any = tableProps.headerTitle;
-    const modalFormItems = addProps?.modalProps?.formItems || formItems;
+    const headerTitle: any = tableProps.headerTitle
+    const modalFormItems = addProps?.modalProps?.formItems || formItems
     addProps = {
       method: 'POST',
       btnText: '新增',
@@ -303,28 +509,28 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
         ...(modalFormItems ? { formItems: modalFormItems } : {}),
         title: getModalTitle(addProps, '新增'),
       },
-    };
+    }
     const addButton = (
       <Button
         type="primary"
         onClick={() => {
           if (!isUnMounted) {
-            setFormValues({});
-            setFormType('add');
+            setFormValues({})
+            setFormType('add')
           }
         }}
       >
         <PlusOutlined /> {addProps.btnText}
       </Button>
-    );
+    )
     tableProps.headerTitle = isFunction(headerTitle)
-      ? headerTitle?.(addButton, actionRef.current)
-      : addButton;
+      ? headerTitle?.(addButton, actionRef)
+      : addButton
   }
 
   // 是否有更新操作
   if (updateProps) {
-    const modalFormItems = updateProps?.modalProps?.formItems || formItems;
+    const modalFormItems = updateProps?.modalProps?.formItems || formItems
     updateProps = {
       method: 'PUT',
       btnText: '编辑',
@@ -337,7 +543,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
         ...(modalFormItems ? { formItems: modalFormItems } : {}),
         title: getModalTitle(updateProps, '更新'),
       },
-    };
+    }
   }
 
   // 是否有删除操作
@@ -352,28 +558,9 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       popProps: {
         title: '确定删除此条记录?',
         placement: 'topRight',
-        onConfirm: async ({ record }: any) => {
-          try {
-            const hide = message.loading(deleteProps?.loadingMsg);
-            const res = await handleRequest(
-              deleteProps,
-              {
-                ...(typeof rowKey === 'string' && record[rowKey]
-                  ? { [rowKey]: record[rowKey] }
-                  : {}),
-              },
-              record,
-            );
-            if (res) {
-              actionRef?.current?.reload();
-              message.success(deleteProps?.successMsg);
-            }
-            hide();
-          } catch {}
-        },
         ...deleteProps?.popProps,
       },
-    };
+    }
   }
 
   // 是否有列表请求
@@ -382,43 +569,98 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       method: 'GET',
       requestType: 'params',
       ...listProps,
-    };
+    }
     tableProps.request = async (params: any = {}) => {
-      const { pageSize, current, ...other } = params;
+      const { pageSize, current, total, ...other } = params
 
       const res = await handleRequest(listProps, {
         page: current,
         size: pageSize,
         ...other,
-      });
+      })
 
-      let tableData = res?.records || (res instanceof Array ? res : []);
+      let data = res?.records || (res instanceof Array ? res : [])
       // 没有rowKey时自定义成序列号
-      if (
-        tableData.length &&
-        tableData.every((e: any) => typeof rowKey === 'string' && !e[rowKey])
-      ) {
-        tableData = tableData.map((item: any, index: number) => ({
+      if (isNotEmptyArray(data) && data.every((e: any) => isString(rowKey) && !e[rowKey])) {
+        data = data.map((item: any, index: number) => ({
           ...item,
-          ...(typeof rowKey === 'string' ? { [rowKey]: index + 1 } : {}),
-        }));
+          ...(isString(rowKey) ? { [rowKey]: index + 1 } : {}),
+        }))
       }
 
       return {
-        data: tableData,
-        total: res.total,
-        page: current || 0,
-        success: true,
-      };
-    };
+        data,
+        total: res?.total,
+        current,
+        pageSize,
+      }
+    }
+  }
+
+  // 设置全屏
+  function fullscreenChange() {
+    if (document.fullscreenEnabled && containerRef?.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen()
+        setFullscreen(false)
+      } else {
+        containerRef.current.requestFullscreen()
+        setFullscreen(true)
+      }
+    }
+  }
+
+  // 工具栏
+  tableProps.toolBarRender = [
+    <Tooltip title="刷新" getPopupContainer={() => containerRef.current}>
+      <ReloadOutlined onClick={() => actionRef.reload?.()} />
+    </Tooltip>,
+    <Tooltip
+      title={fullscreen ? '退出全屏' : '全屏'}
+      getPopupContainer={() => containerRef.current}
+    >
+      {fullscreen ? (
+        <FullscreenOutlined onClick={fullscreenChange} />
+      ) : (
+        <FullscreenExitOutlined onClick={fullscreenChange} />
+      )}
+    </Tooltip>,
+  ]
+  if (isFunction(otherProps.toolBarRender)) {
+    tableProps.toolBarRender = otherProps.toolBarRender(tableProps.toolBarRender, actionRef)
+  }
+  if (otherProps.toolBarRender === false) {
+    tableProps.toolBarRender = []
+  }
+
+  // 获取表格数据
+  async function getTableData(params: any = {}) {
+    setTableLoading(true)
+
+    // 去除空值
+    params = Object.entries(getObject(params)).reduce((t, [key, value]) => {
+      return {
+        ...t,
+        ...(isNotNullOrUndefined(value) ? { [key]: value } : {}),
+      }
+    }, {})
+    const res = await tableProps.request?.(params)
+    const { data, ...pagination } = getObject(res)
+
+    if (!isUnMounted) {
+      setTableData(data)
+      setTablePagination(pagination)
+    }
+
+    setTableLoading(false)
   }
 
   // 操作项列表
   let operatingItems: OperatingItem[] = [
     { type: 'modal', props: updateProps },
     { type: 'pop', props: deleteProps },
-  ].filter((f: OperatingItem) => f.props);
-  operatingItems = handleOperating?.(operatingItems) || operatingItems;
+  ].filter((f: OperatingItem) => f.props)
+  operatingItems = handleOperating?.(operatingItems) || operatingItems
   // 列表是否含有操作项
   const operating = [
     {
@@ -431,30 +673,30 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
         (data: any, index: number) => {
           const btnText = isFunction(data?.props?.btnText)
             ? data?.props?.btnText(false)
-            : data?.props?.btnText;
-          return getNumber(btnText?.length) * 14 + (index ? 20 : 0);
+            : data?.props?.btnText
+          return getNumber(btnText?.length) * 14 + (index ? 20 : 0)
         },
-        16,
+        16 * 2,
       ),
       render: (_: any, record: any) => {
         return (
           <>
             {operatingItems.map((item, index) => {
-              let btnElement;
+              let btnElement
               const btnText = isFunction(item?.props?.btnText)
                 ? item?.props?.btnText(record)
-                : item?.props?.btnText;
+                : item?.props?.btnText
               const hasPrevBtn = operatingItems.slice(0, index).some((x) => {
                 return Boolean(
                   isFunction(x?.props?.btnText) ? x?.props?.btnText(record) : x?.props?.btnText,
-                );
-              });
-              const onConfirm = item?.props?.popProps?.onConfirm;
-              const onCancel = item?.props?.popProps?.onCancel;
+                )
+              })
+              const onConfirm = item?.props?.popProps?.onConfirm
+              const onCancel = item?.props?.popProps?.onCancel
               const cParams: any = {
                 record,
-                table: actionRef?.current,
-              };
+                table: actionRef,
+              }
               switch (item.type) {
                 // 编辑
                 case 'modal':
@@ -462,29 +704,51 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                     <a
                       onClick={() => {
                         if (!isUnMounted) {
-                          setFormValues(record);
-                          setFormType(item.type + index);
+                          setFormValues(record)
+                          setFormType(item.type + index)
                         }
                       }}
                       {...item?.props?.aProps?.(record)}
                     >
                       {btnText}
                     </a>
-                  );
-                  break;
+                  )
+                  break
                 // 删除
                 case 'pop':
                   btnElement = (
                     <Popconfirm
                       title=""
                       {...item?.props?.popProps}
-                      onConfirm={() => onConfirm?.(cParams)}
+                      onConfirm={async () => {
+                        if (isFunction(onConfirm)) {
+                          onConfirm?.(cParams)
+                          return
+                        }
+                        try {
+                          const hide = message.loading(item?.props?.loadingMsg || '正在操作')
+                          const res = await handleRequest(
+                            item?.props,
+                            {
+                              ...(isString(rowKey) && record[rowKey]
+                                ? { [rowKey]: record[rowKey] }
+                                : {}),
+                            },
+                            record,
+                          )
+                          if (res) {
+                            actionRef.reload?.()
+                            message.success(item?.props?.successMsg || '操作成功！')
+                          }
+                          hide()
+                        } catch {}
+                      }}
                       onCancel={() => onCancel?.(cParams)}
                     >
                       <a {...item?.props?.aProps?.(record)}>{btnText}</a>
                     </Popconfirm>
-                  );
-                  break;
+                  )
+                  break
                 // 自定义
                 case 'custom':
                   btnElement = (
@@ -494,27 +758,38 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                     >
                       {btnText}
                     </a>
-                  );
-                  break;
+                  )
+                  break
                 default:
-                  break;
+                  break
               }
               return (
                 <span key={index}>
                   {hasPrevBtn && btnText && <Divider type="vertical" />}
                   {btnElement}
                 </span>
-              );
+              )
             })}
           </>
-        );
+        )
       },
     },
-  ];
+  ]
+
   if (operatingItems.length) {
-    const newColumns: any = columns instanceof Array ? columns : [];
-    tableProps.columns = [...newColumns, ...operating];
+    const newColumns: any = columns instanceof Array ? columns : []
+    tableProps.columns = [...newColumns, ...operating]
   }
+
+  // 初始化获取数据
+  useEffect(() => {
+    if (!filterProps?.formItems || filterForm) {
+      getTableData({
+        ...tablePagination,
+        ...filterForm?.getFieldsValue?.(),
+      })
+    }
+  }, [filterForm])
 
   // 弹窗数据变动及打开
   useEffect(() => {
@@ -526,22 +801,96 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             return {
               ...t,
               [c.type + cIndex]: c.props,
-            };
+            }
           }
-          return t;
+          return t
         }, {}),
-      };
-      openModal(formTypeMap[formType]);
+      }
+      openModal(formTypeMap[formType])
     }
     return () => {
-      isUnMounted = true;
-    };
-  }, [formValues, formType]);
+      isUnMounted = true
+    }
+  }, [formValues, formType])
 
-  // 渲染表格
-  const renderTable = () => <ProTable actionRef={actionRef} formRef={filterForm} {...tableProps} />;
+  return (
+    <div ref={containerRef} style={{ background: '#fff' }}>
+      <Card bordered={false}>
+        {/* 过滤表单 */}
+        {isNotEmptyArray(filterProps?.formItems) && (
+          <div style={{ margin: '10px 0 20px' }}>
+            <FilterForm {...filterProps} />
+          </div>
+        )}
+        {/* 操作栏 */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+          }}
+        >
+          {/* 表格标题&操作按钮 */}
+          <div>
+            <Space>
+              {isFunction(tableProps.headerTitle)
+                ? tableProps.headerTitle()
+                : tableProps.headerTitle}
+            </Space>
+          </div>
+          {/* 工具栏 */}
+          <div>
+            <Space
+              size={12}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: 6,
+              }}
+            >
+              {tableProps.toolBarRender?.map((item: any, index: number) => (
+                <div
+                  key={index}
+                  style={{
+                    fontSize: 16,
+                    cursor: 'pointer',
+                    padding: '0 4px',
+                    lineHeight: 'normal',
+                  }}
+                >
+                  {item}
+                </div>
+              ))}
+            </Space>
+          </div>
+        </div>
+        {/* 表格选中项统计条 */}
+        {isNotEmptyArray(selectedRowKeys) && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: 48,
+              padding: '0 9px 0 24px',
+              border: '1px solid #91d5ff',
+              background: '#e6f7ff',
+              marginBottom: 16,
+              transition: 'all .5s',
+            }}
+          >
+            <span>已选择 {selectedRowKeys.length} 项</span>
+            <Button type="link" onClick={actionRef.clearSelected}>
+              取消选择
+            </Button>
+          </div>
+        )}
+        {/* 表格 */}
+        <Table {...tableProps} />
+      </Card>
+    </div>
+  )
+}
 
-  return isInModal ? renderTable() : <PageContainer>{renderTable()}</PageContainer>;
-};
-
-export default forwardRef(IntegrationTable);
+export default forwardRef(IntegrationTable)
