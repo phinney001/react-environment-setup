@@ -1,10 +1,10 @@
 import React from 'react'
 import { loginPath } from '@/access'
-import Kanban from '@/pages/Kanban'
-import Login from '@/pages/Login'
 import {
   DashboardOutlined,
 } from '@ant-design/icons'
+import Kanban from '@/pages/Kanban'
+import Login from '@/pages/Login'
 
 /**
  * 路由接口
