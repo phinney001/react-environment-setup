@@ -10,7 +10,7 @@ class Router {
    * @returns {string}
    */
   getFirstLetterUpper(str) {
-    if (this.isString(str) && str[0]) {
+    if (typeof str === 'string' && str[0]) {
       return str[0].toUpperCase() + str.substr(1)
     }
     return ''
@@ -84,13 +84,71 @@ class Router {
    * 生成路由命令
    */
   start() {
+    // package.json routes路径配置
+    const packageJson = require(path.join(process.cwd(), 'package.json'))
+    let routesRelativePath = packageJson?.routes
+
+    // 是否是vite或webpack构建项目
+    const isViteOrWebpack = fs.existsSync(path.join(process.cwd(), '/src/routes/index.tsx'))
     // 路由文件路径
-    const routerPath = `${process.cwd()}/config/routes.ts`
-    if (fs.existsSync(routerPath)) {
+    if (!routesRelativePath) {
+      routesRelativePath = isViteOrWebpack
+        ? '/src/routes/index.tsx'
+        : '/config/routes.ts'
+    }
+    // 绝对路径
+    const routesPath = path.join(process.cwd(), routesRelativePath)
+
+    if (fs.existsSync(routesPath)) {
       // 获取路由列表
-      let routerListString = fs.readFileSync(routerPath, 'utf-8')
-      routerListString = routerListString.replace('export default ', '')
-      const routerList = eval(routerListString)
+      let routerListString = fs.readFileSync(routesPath, 'utf-8')
+      const matchString = routerListString.match(/\[\] = \[([\s\S]*)\n\]/)?.[1]
+      let routerList = []
+
+      if (isViteOrWebpack) {
+        const nameRegex = /path: '\/([\s\S]*?)'/
+        const componentRegex = /component: '([\s\S]*?)'/g
+        let newMatchString = matchString
+        const importList = []
+        routerList = matchString.match(componentRegex)?.map((str) => {
+          const matchIndex = matchString.indexOf(str)
+          const startIndex = matchString.lastIndexOf('{', matchIndex)
+          const endIndex = matchString.indexOf('}', matchIndex)
+          const componentConfigString = matchString.substr(startIndex, endIndex - startIndex + 1)
+          const filePath = componentConfigString.match(nameRegex)?.[1]
+          const fileName = filePath?.split('/').map(this.getFirstLetterUpper).join('')
+          const space = ('    ').repeat(filePath?.split('/').length)
+          newMatchString = newMatchString.replace(
+            componentConfigString,
+            componentConfigString
+              .replace(str, `component: <${fileName} />`)
+              .replace(`${space}table: true,\r\n`, '')
+              .replace(`${space}service: true,\r\n`, '')
+              .replace(`${space}cover: true,\r\n`, '')
+          )
+          importList.push(`import ${fileName} from '@/pages/${filePath}'`)
+          return eval(`[${componentConfigString}]`)[0]
+        })
+        routerListString = routerListString.replace(matchString, newMatchString)
+        importList.forEach(ip => {
+          if (!routerListString.includes(ip)) {
+            const lineStartIndex = routerListString.lastIndexOf('import ')
+            const lineEndIndex = routerListString.indexOf('\n', lineStartIndex)
+            const lastImportString = routerListString.substring(lineStartIndex, lineEndIndex)
+            routerListString = routerListString.replace(`${lastImportString}`, `${lastImportString}\n${ip}`)
+          }
+        })
+        console.log(green(`${routesRelativePath} updating. . .`))
+        fs.writeFileSync(routesPath, routerListString, 'utf-8')
+        console.log(green(`${routesRelativePath} update completed.`))
+      } else {
+        if (routerListString.indexOf('export default') > 1) {
+          routerListString = `[${matchString}]`
+        } else {
+          routerListString = routerListString.replace('export default ', '')
+        }
+        routerList = eval(routerListString)
+      }
       // 路由生成路径
       const routeBasePath = `${process.cwd()}/src/pages`
       // 生成路由
