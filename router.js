@@ -160,7 +160,7 @@ class Router {
         console.log(green('No need to update.'))
       }
     } else {
-      console.log(red(`${routerPath} must exists.`))
+      console.log(red(`${routesPath} must exists.`))
     }
   }
 }
