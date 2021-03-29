@@ -105,7 +105,7 @@ class Router {
       const matchString = routerListString.match(/\[\] = \[([\s\S]*)\n\]/)?.[1]
       let routerList = []
 
-      if (isViteOrWebpack) {
+      if (isViteOrWebpack && routesPath.endsWith('.tsx')) {
         const nameRegex = /component: '([\s\S]*?)'/
         const componentRegex = /component: '([\s\S]*?)'/g
         let newMatchString = matchString
