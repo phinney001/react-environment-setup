@@ -106,7 +106,7 @@ class Router {
       let routerList = []
 
       if (isViteOrWebpack) {
-        const nameRegex = /path: '\/([\s\S]*?)'/
+        const nameRegex = /component: '([\s\S]*?)'/
         const componentRegex = /component: '([\s\S]*?)'/g
         let newMatchString = matchString
         const importList = []
@@ -115,18 +115,18 @@ class Router {
           const startIndex = matchString.lastIndexOf('{', matchIndex)
           const endIndex = matchString.indexOf('}', matchIndex)
           const componentConfigString = matchString.substr(startIndex, endIndex - startIndex + 1)
-          const filePath = componentConfigString.match(nameRegex)?.[1]
-          const fileName = filePath?.split('/').map(this.getFirstLetterUpper).join('')
-          const space = ('    ').repeat(filePath?.split('/').length)
+          const filePath = componentConfigString.match(nameRegex)?.[1]?.replace(/[.]/g, '')
+          const fileName = filePath?.split('/').filter(Boolean).map(this.getFirstLetterUpper).join('')
+          const space = ('    ').repeat(filePath?.split('/').filter(Boolean).length)
           newMatchString = newMatchString.replace(
             componentConfigString,
             componentConfigString
-              .replace(str, `component: <${fileName} />`)
+              .replace(str, `component: ${fileName}`)
               .replace(`${space}table: true,\r\n`, '')
               .replace(`${space}service: true,\r\n`, '')
               .replace(`${space}cover: true,\r\n`, '')
           )
-          importList.push(`import ${fileName} from '@/pages/${filePath}'`)
+          importList.push(`import ${fileName} from '@/pages${filePath}'`)
           return eval(`[${componentConfigString}]`)[0]
         })
         routerListString = routerListString.replace(matchString, newMatchString)
