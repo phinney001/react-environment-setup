@@ -82,6 +82,10 @@ class ReactCli {
 
     // 拷贝文件
     this.copyDir(templatePath, projectPath, answers['project-name-cn'])
+    fs.renameSync(
+      path.join(projectPath, '.ignore'),
+      path.join(projectPath, '.gitignore'),
+    )
     console.log(green('项目创建成功！'))
   }
 
