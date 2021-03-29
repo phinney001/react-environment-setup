@@ -138,9 +138,11 @@ class Router {
             routerListString = routerListString.replace(`${lastImportString}`, `${lastImportString}\n${ip}`)
           }
         })
-        console.log(green(`${routesRelativePath} updating. . .`))
-        fs.writeFileSync(routesPath, routerListString, 'utf-8')
-        console.log(green(`${routesRelativePath} update completed.`))
+        if (importList?.length) {
+          console.log(green(`${routesRelativePath} updating. . .`))
+          fs.writeFileSync(routesPath, routerListString, 'utf-8')
+          console.log(green(`${routesRelativePath} update completed.`))
+        }
       } else {
         if (routerListString.indexOf('export default') > 1) {
           routerListString = `[${matchString}]`
@@ -149,10 +151,14 @@ class Router {
         }
         routerList = eval(routerListString)
       }
-      // 路由生成路径
-      const routeBasePath = `${process.cwd()}/src/pages`
-      // 生成路由
-      this.generateRoute(routerList, routeBasePath)
+      if (routerList?.length) {
+        // 路由生成路径
+        const routeBasePath = `${process.cwd()}/src/pages`
+        // 生成路由
+        this.generateRoute(routerList, routeBasePath)
+      } else {
+        console.log(green('No need to update.'))
+      }
     } else {
       console.log(red(`${routerPath} must exists.`))
     }
