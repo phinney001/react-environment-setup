@@ -28,10 +28,10 @@
   res
   ```
 # 生成路由
-  + vite或webpack项目路由文件路径：src/routes/index.tsx
+  + vite项目、webpack项目路由文件路径：src/routes/index.tsx
   + umi项目路由文件路径：config/routes.ts
   + 自定义路由文件路径：使用package.json中routes字段指向路由文件路径
-  + 自定义配置模版：使用package.json中template字段指向模版目录，目录下必须存在三个文件：index.tsx、table.tsx、service.tsx
+  + 自定义配置模版目录：使用package.json中template字段指向模版目录，目录下必须存在三个文件：index.tsx、table.tsx、service.tsx
   + 在路由文件中添加路由，内容如: 
   ```javascript
   {
