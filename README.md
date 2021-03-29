@@ -6,15 +6,16 @@
 
 # 简介
 `react-environment-setup` 用于React项目自动化创建，依赖于:
-+ [Node](https://nodejs.org/en/)
-+ [Umi](https://github.com/umijs/umi)
++ [Node](https://nodejs.org/en)
++ [Umi](https://umijs.org/zh-CN)
++ [Vite](https://cn.vitejs.dev)
++ [Webpack](https://webpack.docschina.org/concepts)
 + [ant-design](https://ant.design/docs/spec/introduce-cn)
-+ [ant-design-pro](https://procomponents.ant.design/)
++ [ant-design-pro](https://procomponents.ant.design)
 
 # 环境
   ```bash
-  Umi (version >= 3.x)
-  Node (version >= 10.x)
+  Node (version >= 14.x)
   ```
 
 # 安装
@@ -27,25 +28,27 @@
   res
   ```
 # 生成路由
-  + 在项目config目录routes.ts文件添加路由，内容如: 
+  + vite或webpack项目路由文件路径：src/routes/index.tsx
+  + umi项目路由文件路径：config/routes.ts
+  + 自定义路由文件路径：使用package.json中routes字段指向路由文件路径
+  + 自定义配置模版：使用package.json中template字段指向模版目录，目录下必须存在三个文件：index.tsx、table.tsx、service.tsx
+  + 在路由文件中添加路由，内容如: 
   ```javascript
-  export default [
-    {
-      path: '/parent',
-      name: '父级路由中文名称',
-      icon: 'smile',
-      routes: [
-        {
-          path: '/parent/child',
-          name: '子级路由中文名称',
-          component: './Parent/Child',
-          table: true, // 是否是一体化表格组件
-          service: true, // 是否添加service文件
-          cover: true, // 已有文件是否覆盖
-        }
-      ]
-    }
-  ]
+  {
+    path: '/parent',
+    name: '父级路由中文名称',
+    icon: 'smile',
+    routes: [
+      {
+        path: '/parent/child',
+        name: '子级路由中文名称',
+        component: './Parent/Child',
+        table: true, // 是否是一体化表格组件
+        service: true, // 是否添加service文件
+        cover: true, // 已有文件是否覆盖
+      }
+    ]
+  }
   ```
   + 运行命令
   ```bash
