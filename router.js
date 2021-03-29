@@ -18,11 +18,14 @@ class Router {
 
   /**
    * 生成路由组件
-   * @param {string} moduleName 模块名称
    * @param {string} routerList 路由列表
    * @param {string} routePath 路由组件路径
+   * @param {string} templatePath 模版目录路径：包含index.tsx、table.tsx、service.tsx
    */
-  generateRoute(routerList, routePath) {
+  generateRoute(routerList, routePath, templatePath) {
+    const tempPath = templatePath
+    ? path.join(process.cwd(), templatePath)
+    : path.join(__dirname, './template/blank')
     routerList.forEach(item => {
       const isComponent = item.name && item.component
       const newRoutePath = isComponent ? path.join(routePath, item.component) : routePath
@@ -40,13 +43,13 @@ class Router {
           console.log(green(`${fileName}/index.tsx creating. . .`))
           // 获取空白组件字符串
           let componentString = fs.readFileSync(
-            path.join(__dirname, './template/blank/index.tsx'),
+            path.join(tempPath, 'index.tsx'),
             'utf-8'
           )
           // 是否是表格类组件
           if (item.table) {
             componentString = fs.readFileSync(
-              path.join(__dirname, './template/blank/table.tsx'),
+              path.join(tempPath, 'table.tsx'),
               'utf-8'
             )
           }
@@ -64,7 +67,7 @@ class Router {
             fs.writeFileSync(
               path.join(newRoutePath, 'service.tsx'),
               fs.readFileSync(
-                path.join(__dirname, './template/blank/service.tsx'),
+                path.join(tempPath, 'service.tsx'),
                 'utf-8'
               ),
               'utf-8'
@@ -75,7 +78,7 @@ class Router {
       }
       // 如果有子级路由递归
       if (item.routes && item.routes.length) {
-        this.generateRoute(item.routes, newRoutePath)
+        this.generateRoute(item.routes, newRoutePath, templatePath)
       }
     })
   }
@@ -84,8 +87,9 @@ class Router {
    * 生成路由命令
    */
   start() {
-    // package.json routes路径配置
+    // package.json routes/template路径配置
     const packageJson = require(path.join(process.cwd(), 'package.json'))
+    const templatePath = packageJson?.template
     let routesRelativePath = packageJson?.routes
 
     // 是否是vite或webpack构建项目
@@ -155,7 +159,7 @@ class Router {
         // 路由生成路径
         const routeBasePath = `${process.cwd()}/src/pages`
         // 生成路由
-        this.generateRoute(routerList, routeBasePath)
+        this.generateRoute(routerList, routeBasePath, templatePath)
       } else {
         console.log(green('No need to update.'))
       }
