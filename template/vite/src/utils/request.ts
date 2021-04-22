@@ -1,5 +1,6 @@
+import { getToken, toLogin } from '@/access'
 import { message, notification } from 'antd'
-import { getString, objectMerge, sum } from 'phinney-toolkit'
+import { getString, isFunction, objectMerge } from 'phinney-toolkit'
 
 /**
  * 请求配置
@@ -9,6 +10,7 @@ import { getString, objectMerge, sum } from 'phinney-toolkit'
  * @param responseType 获取服务器数据类型 text: 文本字符串 | json: JSON对象 | blob: 二进制Blob对象 | formData: FormData表单对象 | arrayBuffer: 二进制ArrayBuffer对象
  * @param download 当服务器数据类型为blob时是否自动下载
  * @param contentType 请求数据类型 json: JSON数据格式 | form: 表单默认提交数据格式 | 其它
+ * @param process 文件上传进度方法
  */
 interface RequestOption extends RequestInit {
   data?: any
@@ -17,6 +19,7 @@ interface RequestOption extends RequestInit {
   responseType?: 'text' | 'json' | 'blob' | 'formData' | 'arrayBuffer'
   download?: boolean
   contentType?: 'json' | 'form' | string
+  process?: (progress: number) => void
   [key: string]: any
 }
 
@@ -71,13 +74,19 @@ class Http {
           return t += `${i ? '&' : ''}${key}=${getString(value)}`
         }, '')
       } else {
-        options.contentType = 'json'
-        options.body = JSON.stringify(options.body)
+        if (options.data instanceof FormData) {
+          options.contentType = ''
+          options.body = options.data
+        } else {
+          options.contentType = 'json'
+          options.body = JSON.stringify(options.data)
+        }
       }
     }
 
     // formData表单数据处理
     if (options.formData) {
+      options.contentType = ''
       options.body = Object.entries({
         ...options?.formData
       }).reduce((t, [key, value]: any[]) => {
@@ -96,7 +105,7 @@ class Http {
       ...(options.contentType ? {
         'Content-Type': contentTypeMap[options.contentType] || options.contentType
       } : {}),
-      Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl91c2VyX2luZm8iOiJ7XCJ1c2VySWRcIjpcIjEwNzJcIixcInVzZXJOYW1lXCI6XCLlkI7lj7DmtYvor5VcIixcInBob25lTnVtXCI6XCIxODIwMTMzMTkyM1wiLFwicm9sZXNcIjpudWxsLFwiYWNjb3VudElkXCI6bnVsbCxcImphdmFUb2tlblwiOlwiXCIsXCJnb1Rva2VuXCI6XCJcIixcImxvZ2luTmFtZVwiOlwiXCIsXCJ1c2VyQ29kZVwiOlwiNGNiMTc1ZGRiN2IxNDQ1MDgwMTQ3MTRmMjlkODk3MTBcIixcImhlYWRJbWFnZVwiOlwiNzQzZmRkNWU1OTU2NDc5ODg1M2ZlYjYxODc3NGZkOThcIixcImNvbW11bml0eUNvZGVcIjpcIlwiLFwiY29tbXVuaXR5TmFtZVwiOlwiXCIsXCJuZXdVc2VyXCI6ZmFsc2UsXCJiaW5kQmFnXCI6ZmFsc2UsXCJjb21taXR0ZWVcIjpmYWxzZSxcImJpbmRDb21tdW5pdHlcIjpmYWxzZX0iLCJleHAiOjE2MTY0ODI2Njd9.zACCmdkbx5wThaG5iN6sD1oxB8goZcWAGP1al19wPB4'
+      Authorization: getToken()
     })
 
     return new Request(newUrl, options)
@@ -122,10 +131,23 @@ class Http {
           this.download(res)
           return res
         }
+        // 文件上传进度
+        if (isFunction(options.process)) {
+          const reader = response?.body?.getReader()
+          const contentLength = Number(response?.headers?.get?.('Content-Length'))
+          let receivedLength  = 0
+          reader?.read().then((result: any) => {
+            if (result.done) {
+              options?.process?.(100)
+            }
+            receivedLength += result.value.length
+            options?.process?.(receivedLength / contentLength * 100)
+          })
+        }
 
         // 登录失效
         if (res?.httpStatus === 401) {
-          // toLogin()
+          toLogin()
         }
 
         // 其他报错

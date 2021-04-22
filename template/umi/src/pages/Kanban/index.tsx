@@ -2,7 +2,6 @@ import IntegrationTable, { IntegrationTableProps } from '@/components/Integratio
 import { DynamicFormItem } from '@/components/DynamicForm'
 import { useEffect } from 'react'
 import { TableColumnProps } from 'antd'
-import { PageContainer } from '@ant-design/pro-layout'
 
 // @page 看板
 const Kanban: React.FC = () => {
@@ -14,15 +13,7 @@ const Kanban: React.FC = () => {
     {
       title: '用户名',
       dataIndex: 'user',
-    },
-  ]
-
-  // 过滤表单项
-  const filterItems: DynamicFormItem[] = [
-    {
-      type: 'text',
-      label: '用户名',
-      name: 'user',
+      search: true,
     },
   ]
 
@@ -42,7 +33,6 @@ const Kanban: React.FC = () => {
     scroll: { x: 1000 },
     columns,
     formItems,
-    filterItems,
     listProps: {
       url: '/url',
     },
@@ -56,9 +46,7 @@ const Kanban: React.FC = () => {
   }, [])
 
   return (
-    <PageContainer>
-      <IntegrationTable {...tablePorps} />
-    </PageContainer>
+    <IntegrationTable {...tablePorps} />
   )
 }
 

@@ -1,12 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  ReactElement,
-  forwardRef,
-  ForwardRefRenderFunction,
-  useImperativeHandle,
-} from 'react'
+import React, { useState, useEffect, useRef, ReactElement, forwardRef, ForwardRefRenderFunction, useImperativeHandle } from 'react'
 import DynamicForm, { DynamicFormItem, DynamicFormProps } from '../DynamicForm'
 import { COLLAPSED_EVENT_NAME, event } from '@/layouts/UserLayout'
 import { getNumber, getString, isNotEmptyArray, objectMerge } from 'phinney-toolkit'
@@ -82,13 +74,9 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
   }
 
   // 表单label最大宽度
-  const maxLabelWidth =
-    formLabelWidth ||
-    Math.max(
-      ...formItems?.map((item: DynamicFormItem) => {
-        return getTextWidth(`${item.required ? '*' : ''}${getString(item?.label)}：`, 14)
-      }),
-    )
+  const maxLabelWidth = formLabelWidth || Math.max(...formItems?.map((item: DynamicFormItem) => {
+    return getTextWidth(`${item.required ? '*' : ''}${getString(item?.label)}：`, 14)
+  }))
 
   // 过滤表单宽度变化
   const handleResize = useThrottle(() => {
@@ -120,7 +108,7 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
         filterForm?.resetFields()
         const values = await filterForm?.validateFields?.()
         resetProps?.onClick?.({ values, filterForm } as any)
-      },
+      }
     },
     // 查询
     submitProps: {
@@ -128,7 +116,7 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
       onClick: async () => {
         const values = await filterForm?.validateFields?.()
         submitProps?.onClick?.({ values, filterForm } as any)
-      },
+      }
     },
   }
 
@@ -139,34 +127,31 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
     // 表单项
     formItems: [
       ...formItems.map((item: DynamicFormItem, index: number) => ({
-        ...objectMerge(
-          {
-            colProps: {
-              style: {
-                position: 'relative',
-                flex: '0 0 auto',
-                marginBottom: 24,
-                order: index + 1,
-                width: `${100 / (order + 1)}%`,
-              },
-            },
-            formItemProps: {
-              style: {
-                margin: 0,
-                width: getNumber(formItemWith) + maxLabelWidth,
-              },
-              labelCol: {
-                flex: `0 0 ${maxLabelWidth}px`,
-              },
-            },
-            fieldProps: {
-              style: {
-                width: getNumber(formItemWith),
-              },
+        ...objectMerge({
+          colProps: {
+            style: {
+              position: 'relative',
+              flex: '0 0 auto',
+              marginBottom: 24,
+              order: index + 1,
+              width: `${100 / (order + 1)}%`
             },
           },
-          item,
-        ),
+          formItemProps: {
+            style: {
+              margin: 0,
+              width: getNumber(formItemWith) + maxLabelWidth,
+            },
+            labelCol: {
+              flex: `0 0 ${maxLabelWidth}px`,
+            }
+          },
+          fieldProps: {
+            style: {
+              width: getNumber(formItemWith)
+            },
+          }
+        }, item)
       })),
       // 按钮
       {
@@ -176,7 +161,7 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
             flex: '0 0 auto',
             marginLeft: 'auto',
             width: `${100 / (order + 1)}%`,
-            order: collapsed ? formItems?.length : order,
+            order: collapsed ? formItems?.length : order
           },
         },
         formItemProps: {
@@ -189,57 +174,46 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
           const buttons = (
             <>
               <Button {...btnProps.resetProps}>重置</Button>
-              <Button type="primary" {...btnProps.submitProps}>
-                查询
-              </Button>
+              <Button type="primary" {...btnProps.submitProps}>查询</Button>
             </>
           )
           return (
-            btnShow &&
-            isNotEmptyArray(formItems) && (
-              <Space
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                {handleButton ? handleButton?.(buttons, filterForm as FormInstance) : buttons}
-                <a
-                  style={{ marginLeft: 6, userSelect: 'none' }}
-                  onClick={() => {
-                    !isUnMounted && setCollapsed(!collapsed)
-                  }}
-                >
-                  {order >= 1 && formItems?.length !== order && formItems?.length > order && (
-                    <>
-                      {collapsed ? '收起' : '展开'}
-                      <DownOutlined
-                        style={{
-                          marginLeft: 7,
-                          transition: 'all 0.3s ease 0s',
-                          transform: `rotate(${collapsed ? 0.5 : 0}turn)`,
-                        }}
-                      />
-                    </>
-                  )}
-                </a>
-              </Space>
-            )
+            (btnShow && isNotEmptyArray(formItems)) &&
+            <Space style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
+              {handleButton ? handleButton?.(buttons, filterForm as FormInstance) : buttons}
+              <a
+                style={{ marginLeft: 6, userSelect: 'none' }}
+                onClick={() => {
+                  !isUnMounted && setCollapsed(!collapsed)
+                }}>
+                {
+                  (order >= 1 && formItems?.length !== order && formItems?.length > order) &&
+                  <>
+                    {collapsed ? '收起' : '展开'}
+                    <DownOutlined style={{
+                      marginLeft: 7,
+                      transition: 'all 0.3s ease 0s',
+                      transform: `rotate(${collapsed ? 0.5 : 0}turn)`
+                    }} />
+                  </>
+                }
+              </a>
+            </Space>
           )
-        },
-      },
+        }
+      }
     ],
     // 行
-    rowProps: objectMerge(
-      {
-        style: {
-          width: '100%',
-          margin: 0,
-        },
-      },
-      rowProps,
-    ),
+    rowProps: objectMerge({
+      style: {
+        width: '100%',
+        margin: 0
+      }
+    }, rowProps),
     ref: (refs: any) => {
       !isUnMounted && setFilterForm(refs?.form)
     },
@@ -265,17 +239,15 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
         position: 'relative',
         background: '#fff',
         padding: isInCard ? 0 : 24,
-        paddingBottom: !collapsed || !(formItems?.length % (order + 1)) ? 24 : 0,
+        paddingBottom: (!collapsed || !(formItems?.length % (order + 1))) ? 24 : 0,
       }}
     >
       <div ref={filterMain}>
-        <div
-          style={{
-            width: collapsed ? '100%' : formWidth,
-            height: collapsed ? 'auto' : 32,
-            overflow: 'hidden',
-          }}
-        >
+        <div style={{
+          width: collapsed ? '100%' : formWidth,
+          height: collapsed ? 'auto' : 32,
+          overflow: 'hidden'
+        }}>
           <DynamicForm {...dynamicFormProps} />
         </div>
       </div>

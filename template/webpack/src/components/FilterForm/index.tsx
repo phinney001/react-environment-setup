@@ -222,6 +222,7 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
 
   // 窗口变化监听&销毁
   useEffect(() => {
+    handleResize()
     window.addEventListener('resize', handleResize)
     event.on(COLLAPSED_EVENT_NAME, handleResize)
 

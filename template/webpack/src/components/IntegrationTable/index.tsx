@@ -36,6 +36,7 @@ import {
   getNumber,
   getObject,
   getString,
+  isEmptyArray,
   isFunction,
   isNotEmptyArray,
   isNotNullOrUndefined,
@@ -120,13 +121,17 @@ export interface OperatingItem {
 /**
  * 表格实例接口
  * @param reload 重新加载表格
- * @param getSelected 获取表格行选中项
+ * @param setSelected 设置表格行选中项id
+ * @param getSelected 获取表格行选中项id
+ * @param getSelectedRows 获取表格行选中项
  * @param clearSelected 清空表格行选中项
  * @param reset 清除过滤表单
  */
 export interface ActionRefProps {
   reload?: (page?: number) => void
+  setSelected?: (keys: any) => void
   getSelected?: () => any[]
+  getSelectedRows?: () => any[]
   clearSelected?: () => void
   reset?: () => void
 }
@@ -199,8 +204,10 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
     current: 1,
     pageSize: 10
   })
-  // 表格行选中项配置
+  // 表格行选中项key配置
   const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([])
+  // 表格行选中项配置
+  const [selectedRows, setSelectedRows] = useState<any[]>([])
   // 表格是否全屏显示
   const [fullscreen, setFullscreen] = useState<boolean>(false)
 
@@ -217,7 +224,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
   // 过滤表单配置
   filterProps = {
     ref: (fForm: FormInstance) => {
-      !isUnMounted && setFilterForm(fForm)
+      setFilterForm(fForm)
     },
     isInCard: true,
     formItems: getArray(filterItems),
@@ -251,13 +258,21 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
         ...(isNumber(current) ? { current } : {})
       })
     },
-    // 获取表格行选中项
+    // 获取表格行选中项id
     getSelected: () => {
       return selectedRowKeys
     },
+    // 设置表格行选中项id
+    setSelected: (keys: any) => {
+      setSelectedRowKeys(keys)
+    },
+    // 获取表格行选中项
+    getSelectedRows: () => {
+      return selectedRows
+    },
     // 清空表格行选中项
     clearSelected: () => {
-      !isUnMounted && setSelectedRowKeys([])
+      setSelectedRowKeys([])
     },
     // 清除过滤表单
     reset: () => {
@@ -284,7 +299,10 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       rowSelection: {
         selectedRowKeys,
         preserveSelectedRowKeys: true,
-        onChange: setSelectedRowKeys,
+        onChange: (keys: any, rows: any) => {
+          setSelectedRowKeys(keys)
+          setSelectedRows(rows)
+        },
         ...otherProps?.rowSelection
       }
     } : {}),
@@ -417,7 +435,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             modalRef
           }
           const okReturn = await modalProps?.onOk(modalParams)
-          if (okReturn && !isUnMounted) {
+          if (okReturn) {
             setFormType(null)
             setFormValues(null)
           }
@@ -444,10 +462,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
               hide()
               actionRef.reload?.()
               message.success(requestProps?.successMsg || '操作成功！')
-              if (!isUnMounted) {
-                setFormType(null)
-                setFormValues(null)
-              }
+              setFormType(null)
+              setFormValues(null)
               return true
             }
             hide()
@@ -465,10 +481,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             modalRef
           } as any)
         }
-        if (!isUnMounted) {
-          setFormType(null)
-          setFormValues(null)
-        }
+        setFormType(null)
+        setFormValues(null)
       },
       content: {
         ...funcs,
@@ -501,10 +515,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       <Button
         type="primary"
         onClick={() => {
-          if (!isUnMounted) {
-            setFormValues({})
-            setFormType('add')
-          }
+          setFormValues({})
+          setFormType('add')
         }}
       >
         <PlusOutlined /> {addProps.btnText}
@@ -619,7 +631,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
   }
 
   // 获取表格数据
-  async function getTableData(params: any = {}) {
+  async function getTableData({ showSizeChanger, showQuickJumper, ...params }: any = {}) {
     setTableLoading(true)
 
     // 去除空值
@@ -633,10 +645,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
     const res = await tableProps.request?.(params)
     const { data, ...pagination } = getObject(res)
 
-    if (!isUnMounted) {
-      setTableData(data)
-      setTablePagination(pagination)
-    }
+    setTableData(data)
+    setTablePagination(pagination)
 
     setTableLoading(false)
   }
@@ -689,10 +699,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                   btnElement = (
                     <a
                       onClick={() => {
-                        if (!isUnMounted) {
-                          setFormValues(record)
-                          setFormType(item.type + index)
-                        }
+                        setFormValues(record)
+                        setFormType(item.type + index)
                       }}
                       {...item?.props?.aProps?.(record)}
                     >
@@ -723,7 +731,11 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                             record,
                           )
                           if (res) {
-                            actionRef.reload?.()
+                            if (btnText?.includes('删除') && tableData.length === 1) {
+                              actionRef.reload?.(1)
+                            } else {
+                              actionRef.reload?.()
+                            }
                             message.success(item?.props?.successMsg || '操作成功！')
                           }
                           hide()
@@ -769,7 +781,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
 
   // 初始化获取数据
   useEffect(() => {
-    if (!filterProps?.formItems || filterForm) {
+    if (!filterProps?.formItems || isEmptyArray(filterProps?.formItems) || filterForm) {
       getTableData({
         ...tablePagination,
         ...filterForm?.getFieldsValue?.()
