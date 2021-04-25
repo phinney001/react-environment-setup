@@ -116,6 +116,10 @@ const CustomModal = () => {
     if (!Reflect.has(options, 'width')) {
       options.width = 500
     }
+    // 内容
+    options.content = isValidElement(options.content)
+    ? () => options.content
+    : getComponent(options.content)
     // 取消
     options.onCancel = async (e: any) => {
       const bool = await onCancel?.(e, (props: any) => {
@@ -158,12 +162,10 @@ const CustomModal = () => {
   }, [])
 
   return modalList?.map((m: any, mIndex: number) => {
-    const Content = isValidElement(m.content)
-      ? () => m.content
-      : getComponent(m.content)
+    const Content = m.content
 
     return (
-      <Modal key={mIndex} {...m}>
+      <Modal key={m.id} {...m}>
         <Content />
       </Modal>
     )
