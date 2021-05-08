@@ -29,10 +29,10 @@ npm run serve
 ```
 
 ## 环境和依赖
-- node
-- webpack
-- react
-- [ant-design](https://ant.design/components/overview-cn) - Ant Design
+- [Node](https://nodejs.org/en)
+- [Webpack](https://webpack.docschina.org/concepts)
+- [React](https://zh-hans.reactjs.org)
+- [Ant-Design](https://ant.design/docs/spec/introduce-cn)
 
 ## 目录结构
 - src

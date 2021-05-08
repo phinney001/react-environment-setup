@@ -10,8 +10,8 @@
 + [Umi](https://umijs.org/zh-CN)
 + [Vite](https://cn.vitejs.dev)
 + [Webpack](https://webpack.docschina.org/concepts)
-+ [ant-design](https://ant.design/docs/spec/introduce-cn)
-+ [ant-design-pro](https://procomponents.ant.design)
++ [Ant-Design](https://ant.design/docs/spec/introduce-cn)
++ [Ant-Design-Pro](https://procomponents.ant.design)
 
 # 环境
   ```bash

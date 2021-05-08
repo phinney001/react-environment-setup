@@ -31,15 +31,13 @@ npm run serve
 ```
 
 ## 环境和依赖
-
-- node
-- umi
-- react
-- [ant-design](https://ant.design/components/overview-cn) - Ant Design
-- [ant-design-pro](https://beta-pro.ant.design/docs/getting-started-cn) - Ant Design Pro
+- [Node](https://nodejs.org/en)
+- [Umi](https://umijs.org/zh-CN)
+- [React](https://zh-hans.reactjs.org)
+- [Ant-Design](https://ant.design/docs/spec/introduce-cn)
+- [Ant-Design-Pro](https://procomponents.ant.design)
 
 ## 目录结构
-
 - config `公共配置`
   - config.dev.ts `开发环境专用配置`
   - config.ts `环境配置`
