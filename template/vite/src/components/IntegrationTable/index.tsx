@@ -138,11 +138,11 @@ export interface ActionRefProps {
 
 /**
  * 一体化表格refs接口
- * @param filterform 搜索表单实例
+ * @param filterForm 搜索表单实例
  * @param actionRef 表格实例
  */
 export interface IntegrationTableRefs {
-  filterform?: FormInstance
+  filterForm?: FormInstance
   actionRef?: ActionRefProps
 }
 
@@ -232,6 +232,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       onClick: ({ values }: any) => {
         getTableData({
           ...tablePagination,
+          current: 1,
           ...values
         })
       }
@@ -241,6 +242,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       onClick: ({ values }: any) => {
         getTableData({
           ...tablePagination,
+          current: 1,
           ...values
         })
       }

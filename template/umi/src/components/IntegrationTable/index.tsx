@@ -93,12 +93,12 @@ export interface OperatingItem {
 
 /**
  * 一体化表格refs接口
- * @param filterform 搜索表单实例
+ * @param filterForm 搜索表单实例
  * @param modalform 弹窗表单实例
  * @param actionRef 表格实例
  */
 export interface IntegrationTableRefs {
-  filterform?: FormInstance;
+  filterForm?: FormInstance;
   modalform?: FormInstance;
   actionRef?: ActionType;
 }
