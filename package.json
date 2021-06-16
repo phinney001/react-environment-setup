@@ -1,6 +1,6 @@
 {
   "name": "react-environment-setup",
-  "version": "1.0.44",
+  "version": "1.0.45",
   "description": "react-environment-setup",
   "main": "init.js",
   "scripts": {

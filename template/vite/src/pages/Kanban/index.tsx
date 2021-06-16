@@ -36,7 +36,7 @@ const Kanban: React.FC = () => {
   ]
 
   // 一体化表格props
-  const tablePorps: IntegrationTableProps = {
+  const tableProps: IntegrationTableProps = {
     rowKey: 'index',
     scroll: { x: 1000 },
     columns,
@@ -55,7 +55,7 @@ const Kanban: React.FC = () => {
   }, [])
 
   return (
-    <IntegrationTable {...tablePorps} />
+    <IntegrationTable {...tableProps} />
   )
 }
 
