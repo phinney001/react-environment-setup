@@ -367,7 +367,9 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
     const modalProps = requestProps?.modalProps
     // 弹窗打开之前调用
     await modalProps?.openBefore?.(formValues)
-    const record = (await modalProps?.formValuesHandle?.(formValues)) || formValues
+    const record = {
+      ...((await modalProps?.formValuesHandle?.(formValues)) || formValues)
+    }
     // 动态表单元素
     const modalFormItems = modalProps?.formItems
     let modalFormContent: React.ReactNode
