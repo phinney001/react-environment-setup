@@ -106,7 +106,7 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
       ...resetProps,
       onClick: async () => {
         filterForm?.resetFields()
-        const values = await filterForm?.validateFields?.()
+        const values = await filterForm?.getFieldsValue?.()
         resetProps?.onClick?.({ values, filterForm } as any)
       }
     },
@@ -240,13 +240,14 @@ const FilterForm: ForwardRefRenderFunction<FormInstance, FilterFormProps> = (pro
         background: '#fff',
         padding: isInCard ? 0 : 24,
         paddingBottom: (!collapsed || !(formItems?.length % (order + 1))) ? 24 : 0,
+        overflow: 'hidden'
       }}
     >
       <div ref={filterMain}>
         <div style={{
           width: collapsed ? '100%' : formWidth,
           height: collapsed ? 'auto' : 32,
-          overflow: 'hidden'
+          overflow: btnShow ? 'initial': 'hidden'
         }}>
           <DynamicForm {...dynamicFormProps} />
         </div>
