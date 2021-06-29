@@ -24,6 +24,7 @@ import { getNumber, isFunction, objectMerge, sum } from 'phinney-toolkit';
  * 弹窗配置
  * @param width 弹窗宽度
  * @param title 弹窗标题
+ * @param formProps 弹窗表单props
  * @param formItems 弹窗表单配置列表
  * @param stateHandle 弹窗state处理方法
  * @param formItemsHandle 弹窗表单项处理方法
@@ -94,12 +95,12 @@ export interface OperatingItem {
 /**
  * 一体化表格refs接口
  * @param filterForm 搜索表单实例
- * @param modalform 弹窗表单实例
+ * @param modalForm 弹窗表单实例
  * @param actionRef 表格实例
  */
 export interface IntegrationTableRefs {
   filterForm?: FormInstance;
-  modalform?: FormInstance;
+  modalForm?: FormInstance;
   actionRef?: ActionType;
 }
 
@@ -109,6 +110,7 @@ export interface IntegrationTableRefs {
  * @param addProps 添加数据配置
  * @param updateProps 更新数据配置
  * @param deleteProps 删除数据配置
+ * @param headerTitle 标题&操作按钮
  * @param handleOperating 处理/新增操作项
  * @param formItems 新增/编辑弹窗表单配置列表
  * @param isInModal 表格是否嵌套在弹窗中
@@ -120,6 +122,7 @@ export interface IntegrationTableProps extends ProTableProps<any, any> {
   addProps?: RequestConfig;
   updateProps?: RequestConfig;
   deleteProps?: RequestConfig;
+  headerTitle?: string | ((addButton: ReactElement, actionRef: ActionType) => ReactElement)
   handleOperating?: (data: OperatingItem[]) => OperatingItem[];
   formItems?: DynamicFormItem[];
   isInModal?: boolean;

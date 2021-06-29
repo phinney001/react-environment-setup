@@ -50,6 +50,8 @@ import FilterForm, { FilterFormProps } from '../FilterForm'
 
 /**
  * 弹窗配置
+ * @param width 弹窗宽度
+ * @param title 弹窗标题
  * @param formProps 弹窗表单props
  * @param formItems 弹窗表单配置列表
  * @param stateHandle 弹窗state处理方法
@@ -58,6 +60,8 @@ import FilterForm, { FilterFormProps } from '../FilterForm'
  * @param openBefore 弹窗打开之前处理方法
  */
 export interface ModalProps extends CustomModalProps {
+  width?: number
+  title?: string
   formProps?: FormProps
   formItems?: DynamicFormItem[]
   stateHandle?: (state: any) => Record<string, any>
@@ -139,10 +143,12 @@ export interface ActionRefProps {
 /**
  * 一体化表格refs接口
  * @param filterForm 搜索表单实例
+ * @param modalForm 弹窗表单实例
  * @param actionRef 表格实例
  */
 export interface IntegrationTableRefs {
   filterForm?: FormInstance
+  modalForm?: FormInstance
   actionRef?: ActionRefProps
 }
 
@@ -330,6 +336,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
   // 暴露给父组件数据
   useImperativeHandle(ref, () => ({
     filterForm,
+    modalForm,
     actionRef
   }))
 
