@@ -185,6 +185,7 @@ export default (props: any) => {
         <Menu
           theme="dark"
           mode="inline"
+          className={styles.pageMenu}
           defaultOpenKeys={getDefaultOpenKeys()}
           selectedKeys={[history.location.pathname]}
           onClick={({ key }: any) => {
