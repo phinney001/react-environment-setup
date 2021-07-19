@@ -33,7 +33,7 @@ import { checkPhone } from './FormValidate'
 import FormUpload from './FormUpload'
 import FormLocation, { FormLocationRefs } from './FormLocation'
 import { Rule } from 'antd/lib/form'
-import { getArray, isNotEmptyArray } from 'phinney-toolkit'
+import { getArray, isString, isArray, isNotEmptyArray } from 'phinney-toolkit'
 import { modal } from '../CustomModal'
 
 
@@ -233,9 +233,30 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
   useEffect(() => {
     if (form && formValues) {
       form.setFieldsValue({ ...formValues })
-      formItems.forEach((f) => {
+      formItems.forEach((f: any) => {
         if (['upload', 'dragger'].includes(f.type)) {
-          f.fieldProps.onInit.initFileList(formValues[f.name || ''])
+          // 返回值类型
+          const valueType: 'string' | 'array' | 'origin' = f?.fieldProps?.valueType || 'string'
+          let uploadvalue = formValues[f.name || ''] || []
+          // 字符串处理
+          if (isString(uploadvalue)) {
+            uploadvalue = imgUrlToUploadFile(uploadvalue.split(','))
+          }
+          // 字符串数组处理
+          if (isArray(uploadvalue) && uploadvalue.every((e: any) => isString(e))) {
+            uploadvalue = imgUrlToUploadFile(uploadvalue)
+          }
+          let uploadFormValue = uploadvalue
+          // 返回值是字符串
+          if (valueType === 'string') {
+            uploadFormValue = uploadvalue.map((m: any) => m.url).join(',')
+          }
+          // 返回值是数组
+          if (valueType === 'array') {
+            uploadFormValue = uploadvalue.map((m: any) => m.url)
+          }
+          form.setFieldsValue({ [f.name || '']: uploadFormValue })
+          f.fieldProps.onInit.initFileList(uploadvalue)
         }
       })
     }
@@ -449,10 +470,18 @@ const DynamicForm: ForwardRefRenderFunction<DynamicFormRefs, DynamicFormProps> =
       case 'upload':
       // 拖拽上传框
       case 'dragger':
+        // 返回值类型
+        const valueType: 'string' | 'array' | 'origin' = item?.fieldProps?.valueType || 'string'
         item.fieldProps = {
           onChange: (fileList: any) => {
+            const list = fileList.map((m: any) => m.url)
+            const listObj = {
+              string: list.join(','),
+              array: list,
+              origin: fileList
+            }
             form?.setFieldsValue({
-              [item?.name || '']: fileList.map((m: any) => m.url).join(','),
+              [item?.name || '']: listObj[valueType],
             })
           },
           onInit: (cb: any) => {
