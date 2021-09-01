@@ -59,7 +59,7 @@ import FilterForm, { FilterFormProps } from '../FilterForm'
  * @param formValuesHandle 弹窗数据处理方法
  * @param openBefore 弹窗打开之前处理方法
  */
-export interface ModalProps extends CustomModalProps {
+ export interface ModalProps extends CustomModalProps {
   width?: number
   title?: string
   formProps?: FormProps
@@ -90,6 +90,7 @@ export interface ModalProps extends CustomModalProps {
  * @param modalProps 弹窗props
  * @param popProps 删除提示窗props
  * @param aProps a标签props方法
+ * @param effect 请求成功是否会影响数据数量
  */
 export interface RequestConfig {
   url?: string
@@ -109,6 +110,7 @@ export interface RequestConfig {
   modalProps?: ModalProps
   popProps?: PopconfirmProps
   aProps?: (record: any) => any
+  effect?: boolean
   [key: string]: any
 }
 
@@ -132,7 +134,7 @@ export interface OperatingItem {
  * @param reset 清除过滤表单
  */
 export interface ActionRefProps {
-  reload?: (page?: number) => void
+  reload?: (page?: number, extraParams?: any) => void
   setSelected?: (keys: any) => void
   getSelected?: () => any[]
   getSelectedRows?: () => any[]
@@ -146,7 +148,7 @@ export interface ActionRefProps {
  * @param modalForm 弹窗表单实例
  * @param actionRef 表格实例
  */
-export interface IntegrationTableRefs {
+ export interface IntegrationTableRefs {
   filterForm?: FormInstance
   modalForm?: FormInstance
   actionRef?: ActionRefProps
@@ -259,11 +261,12 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
   // 表格实例
   const actionRef: ActionRefProps = {
     // 重新加载表格
-    reload: (current?: number) => {
+    reload: (current?: number, extraParams?: any) => {
       getTableData({
         ...tablePagination,
         ...filterForm?.getFieldsValue?.(),
-        ...(isNumber(current) ? { current } : {})
+        ...(isNumber(current) ? { current } : {}),
+        ...extraParams,
       })
     },
     // 获取表格行选中项id
@@ -327,7 +330,12 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
           ...filterForm?.getFieldsValue?.()
         })
       }
-      otherProps.onChange?.(pagination, filters, sorter, extra)
+      otherProps.onChange?.(
+        { ...pagination, actionRef },
+        { ...filters, actionRef },
+        { ...sorter, actionRef },
+        { ...extra, actionRef },
+      )
     }
   }
 
@@ -471,7 +479,11 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             )
             if (res) {
               hide()
-              actionRef.reload?.()
+              if (requestProps?.effect && tableData.length === 1) {
+                actionRef.reload?.(1)
+              } else {
+                actionRef.reload?.()
+              }
               message.success(requestProps?.successMsg || '操作成功！')
               setFormType(null)
               setFormValues(null)
@@ -683,7 +695,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             : data?.props?.btnText
           return getNumber(btnText?.length) * 14 + (index ? 20 : 0)
         },
-        16 * 2,
+        20 * 2,
       ),
       render: (_: any, record: any) => {
         return (
@@ -742,7 +754,7 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                             record,
                           )
                           if (res) {
-                            if (btnText?.includes('删除') && tableData.length === 1) {
+                            if ((item?.props?.effect || btnText?.includes('删除')) && tableData.length === 1) {
                               actionRef.reload?.(1)
                             } else {
                               actionRef.reload?.()

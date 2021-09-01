@@ -61,6 +61,7 @@ export interface ModalProps extends CustomModalProps {
  * @param modalProps 弹窗props
  * @param popProps 删除提示窗props
  * @param aProps a标签props方法
+ * @param effect 请求成功是否会影响数据数量
  */
 export interface RequestConfig {
   url?: string;
@@ -79,6 +80,7 @@ export interface RequestConfig {
   modalProps?: ModalProps;
   popProps?: PopconfirmProps;
   aProps?: (record?: any) => any;
+  effect?: boolean
   [key: string]: any;
 }
 
@@ -150,6 +152,8 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
 
   // 组件是否已经卸载
   let isUnMounted = false;
+  // 表格数据
+  const [tableData, setTableData] = useState<any>([])
   // 弹窗表单数据
   const [formValues, setFormValues] = useState<any>();
   // 弹窗表单类型
@@ -327,7 +331,11 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
             );
             if (res) {
               hide();
-              actionRef?.current?.reload();
+              if (requestProps?.effect && tableData.length === 1) {
+                actionRef?.current?.reload?.(1)
+              } else {
+                actionRef?.current?.reload?.()
+              }
               message.success(requestProps?.successMsg || '操作成功！');
               if (!isUnMounted) {
                 setFormType(null);
@@ -447,20 +455,22 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
       });
       const res = response?.data
 
-      let tableData = res?.list || (res instanceof Array ? res : []);
+      let data = res?.list || (res instanceof Array ? res : []);
       // 没有rowKey时自定义成序列号
       if (
-        tableData.length &&
-        tableData.every((e: any) => typeof rowKey === 'string' && !e[rowKey])
+        data.length &&
+        data.every((e: any) => typeof rowKey === 'string' && !e[rowKey])
       ) {
-        tableData = tableData.map((item: any, index: number) => ({
+        data = data.map((item: any, index: number) => ({
           ...item,
           ...(typeof rowKey === 'string' ? { [rowKey]: index + 1 } : {}),
         }));
       }
 
+      setTableData(data)
+
       return {
-        data: tableData,
+        data,
         total: res?.count,
         success: true,
       };
@@ -549,7 +559,11 @@ const IntegrationTable: ForwardRefRenderFunction<IntegrationTableRefs, Integrati
                             record,
                           );
                           if (res) {
-                            actionRef?.current?.reload();
+                            if ((item?.props?.effect || btnText?.includes('删除')) && tableData.length === 1) {
+                              actionRef?.current?.reload?.(1)
+                            } else {
+                              actionRef?.current?.reload?.()
+                            }
                             message.success(item?.props?.successMsg || '操作成功！');
                           }
                           hide();
