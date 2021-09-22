@@ -120,6 +120,10 @@ const CustomModal = () => {
     options.content = isValidElement(options.content)
     ? () => options.content
     : getComponent(options.content)
+    // 全屏后挂载父级元素
+    if (document.fullscreenElement) {
+      options.getContainer= () => document.fullscreenElement
+    }
     // 取消
     options.onCancel = async (e: any) => {
       const bool = await onCancel?.(e, (props: any) => {

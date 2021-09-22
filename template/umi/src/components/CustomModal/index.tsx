@@ -116,6 +116,10 @@ const CustomModal = () => {
     if (!Reflect.has(options, 'width')) {
       options.width = 500
     }
+    // 全屏后挂载父级元素
+    if (document.fullscreenElement) {
+      options.getContainer= () => document.fullscreenElement
+    }
     // 内容
     options.content = isValidElement(options.content)
     ? () => options.content
